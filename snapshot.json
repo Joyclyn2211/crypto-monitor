@@ -1,0 +1,9 @@
+{
+  "timestamp": null,
+  "local_time": null,
+  "tone": null,
+  "tone_avg": null,
+  "today_read": "Snapshot not yet generated. The GitHub Actions workflow will run at 07:00 CST and populate this file, or trigger it manually from the Actions tab.",
+  "tokens": [],
+  "news": []
+}

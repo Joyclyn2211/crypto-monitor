@@ -1,0 +1,49 @@
+name: Daily Snapshot
+
+# Runs at 23:00 UTC every day = 07:00 AM Beijing time (CST, UTC+8)
+# To change: update the cron below. UTC = your local time - 8 hours.
+# Examples:  06:00 CST → 22:00 UTC → "0 22 * * *"
+#            08:00 CST → 00:00 UTC → "0 0 * * *"
+on:
+  schedule:
+    - cron: "0 23 * * *"   # 07:00 CST (Beijing, UTC+8)
+  workflow_dispatch:        # also allows manual runs from the Actions tab
+
+permissions:
+  contents: write           # needed to commit snapshot.json back to the repo
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch data and write snapshot.json
+        run: node scripts/snapshot.mjs
+
+      # ── Optional AI narrative hook ───────────────────────────────────────────
+      # To add AI-written summaries, uncomment the block below and add your
+      # Anthropic API key as a repo secret named ANTHROPIC_API_KEY.
+      # (Settings → Secrets and variables → Actions → New repository secret)
+      #
+      # - name: Enhance snapshot with AI narrative
+      #   env:
+      #     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      #   run: node scripts/ai-narrative.mjs   # create this script separately
+      # ────────────────────────────────────────────────────────────────────────
+
+      - name: Commit and push snapshot.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add snapshot.json
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: daily snapshot $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

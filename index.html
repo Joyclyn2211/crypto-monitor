@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Monitor</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Crypto Monitor" />
+  <meta name="theme-color" content="#ffffff" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #16a34a;
+      --red:    #dc2626;
+      --amber:  #d97706;
+      --blue:   #2563eb;
+      --bg:     #f8fafc;
+      --card:   #ffffff;
+      --border: #e2e8f0;
+      --text:   #0f172a;
+      --muted:  #64748b;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; }
+
+    /* ── Header ── */
+    header { margin-bottom: 20px; }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-meta { margin-top: 4px; font-size: 0.75rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+    .status-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: #94a3b8;
+      margin-right: 4px; vertical-align: middle;
+    }
+    .status-dot.live  { background: var(--green); animation: pulse 2s infinite; }
+    .status-dot.error { background: var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* ── Tone ── */
+    .tone-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .tone-label { font-size: 1rem; font-weight: 600; margin-top: 2px; }
+    .tone-positive { color: var(--green); }
+    .tone-negative { color: var(--red); }
+    .tone-neutral  { color: var(--amber); }
+
+    /* ── Today's Read ── */
+    .read-text { font-size: .875rem; line-height: 1.6; color: #334155; }
+
+    /* ── Macro context ── */
+    .macro-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .macro-item { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+    .macro-label { font-size: .65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
+    .macro-value { font-size: .9rem; font-weight: 700; margin-top: 2px; }
+    .macro-note  { font-size: .65rem; color: var(--muted); margin-top: 2px; }
+    .macro-tip   { font-size: .75rem; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+    .macro-tip a { color: var(--blue); text-decoration: none; }
+    .macro-tip a:hover { text-decoration: underline; }
+
+    /* ── News tabs ── */
+    .tab-bar {
+      display: flex; gap: 4px; overflow-x: auto;
+      margin-bottom: 12px; padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0; padding: 5px 12px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--card);
+      font-size: .75rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .tab-btn.active {
+      background: var(--text); color: #fff; border-color: var(--text);
+    }
+
+    /* ── News list ── */
+    .news-list { display: flex; flex-direction: column; gap: 10px; }
+    .news-item { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .news-headline {
+      font-size: .85rem; font-weight: 600; line-height: 1.4;
+      color: var(--text); text-decoration: none;
+    }
+    .news-headline:hover { color: var(--blue); }
+    .news-meta { font-size: .68rem; color: var(--muted); margin-top: 3px; }
+    .news-tag {
+      display: inline-block; font-size: .6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: 1px 5px; border-radius: 4px; margin-right: 4px;
+    }
+    .tag-defi    { background: #dbeafe; color: #1d4ed8; }
+    .tag-ai      { background: #f3e8ff; color: #7c3aed; }
+    .tag-x402    { background: #fef9c3; color: #854d0e; }
+    .tag-macro   { background: #fee2e2; color: #991b1b; }
+    .tag-general { background: #f1f5f9; color: #475569; }
+    .news-empty  { font-size: .8rem; color: var(--muted); text-align: center; padding: 20px 0; }
+
+    /* ── Banner ── */
+    .banner {
+      background: #fef3c7; border: 1px solid #fcd34d;
+      border-radius: var(--radius); padding: 10px 14px;
+      font-size: .8rem; color: #92400e; margin-bottom: 12px; display: none;
+    }
+
+    /* ── Group labels ── */
+    .group-label {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--muted); margin: 18px 0 8px;
+    }
+
+    /* ── Token cards ── */
+    .token-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+    }
+    .token-row { display: flex; align-items: center; justify-content: space-between; }
+    .token-symbol { font-size: .95rem; font-weight: 700; }
+    .token-name   { font-size: .72rem; color: var(--muted); margin-top: 1px; }
+    .token-price  { font-size: .95rem; font-weight: 600; text-align: right; }
+    .token-change { font-size: .8rem;  font-weight: 600; text-align: right; margin-top: 1px; }
+    .up   { color: var(--green); }
+    .dn   { color: var(--red); }
+    .flat { color: var(--muted); }
+
+    /* ── Range bar ── */
+    .range-bar-wrap { margin-top: 10px; }
+    .range-labels {
+      display: flex; justify-content: space-between;
+      font-size: .65rem; color: var(--muted); margin-bottom: 4px;
+    }
+    .range-track {
+      height: 4px; background: #e2e8f0; border-radius: 9999px; position: relative;
+    }
+    .range-marker {
+      position: absolute; top: -3px; width: 10px; height: 10px;
+      background: #334155; border-radius: 50%; transform: translateX(-50%);
+      transition: left .4s ease;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+
+    /* ── Refresh button ── */
+    .refresh-btn {
+      display: block; width: 100%; margin-top: 8px;
+      padding: 12px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--card);
+      font-size: .875rem; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: background .15s;
+    }
+    .refresh-btn:hover    { background: #f1f5f9; }
+    .refresh-btn:active   { background: #e2e8f0; }
+    .refresh-btn:disabled { color: var(--muted); cursor: not-allowed; }
+
+    /* ── Section divider ── */
+    .section-divider {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--muted);
+      margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-divider::after {
+      content: ""; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 24px; padding: 16px 0 8px;
+      border-top: 1px solid var(--border);
+      font-size: .72rem; color: var(--muted); line-height: 1.7;
+    }
+    footer .disclaimer { margin-bottom: 10px; font-style: italic; }
+    footer .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Crypto Monitor</h1>
+    <div class="header-meta">
+      <span><span class="status-dot" id="liveDot"></span><span id="liveTs">Loading…</span></span>
+      <span id="snapshotLine" style="display:none"></span>
+    </div>
+  </header>
+
+  <div class="banner" id="errorBanner"></div>
+
+  <!-- Market Tone -->
+  <div class="card" id="toneCard">
+    <div class="card-title">Market Tone — 4 Majors</div>
+    <div class="skeleton" style="height:2rem;width:80px;margin-bottom:6px"></div>
+    <div class="skeleton" style="height:1rem;width:120px"></div>
+  </div>
+
+  <!-- Today's Read -->
+  <div class="card" id="readCard">
+    <div class="card-title">Today's Read</div>
+    <div class="skeleton" style="height:.875rem;width:100%;margin-bottom:6px"></div>
+    <div class="skeleton" style="height:.875rem;width:85%"></div>
+  </div>
+
+  <!-- Macro Context -->
+  <div class="card" id="macroCard">
+    <div class="card-title">Macro &amp; Regulatory Context</div>
+    <div class="macro-grid" id="macroGrid">
+      <div class="macro-item skeleton" style="height:56px"></div>
+      <div class="macro-item skeleton" style="height:56px"></div>
+      <div class="macro-item skeleton" style="height:56px"></div>
+      <div class="macro-item skeleton" style="height:56px"></div>
+    </div>
+    <div class="macro-tip" id="macroTip"></div>
+  </div>
+
+  <!-- News Feed -->
+  <div class="section-divider">News &amp; Market Intelligence</div>
+
+  <div class="card" id="newsCard">
+    <div class="card-title">Latest Headlines</div>
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" data-tab="all">All</button>
+      <button class="tab-btn" data-tab="defi">DeFi</button>
+      <button class="tab-btn" data-tab="ai">AI Agents</button>
+      <button class="tab-btn" data-tab="x402">0x402</button>
+      <button class="tab-btn" data-tab="macro">Macro / Reg</button>
+    </div>
+    <div class="news-list" id="newsList">
+      <div class="skeleton" style="height:52px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:52px;margin-bottom:8px"></div>
+      <div class="skeleton" style="height:52px"></div>
+    </div>
+  </div>
+
+  <!-- Token Groups -->
+  <div class="section-divider">Prices</div>
+  <div id="tokenGroups"></div>
+
+  <button class="refresh-btn" id="refreshBtn" onclick="refresh()">↻ Refresh</button>
+
+  <footer>
+    <div class="disclaimer">Informational only — not financial advice. Verify on your exchange before trading.</div>
+    <div class="links">
+      <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+      <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Fear &amp; Greed</a>
+      <a href="https://defillama.com" target="_blank" rel="noopener">DeFiLlama</a>
+      <a href="https://www.binance.com/en/new-cryptocurrency-listing" target="_blank" rel="noopener">Binance Listings</a>
+      <a href="https://www.bitget.com/en/new-crypto" target="_blank" rel="noopener">Bitget Listings</a>
+      <a href="https://www.okx.com/markets/new-listings" target="_blank" rel="noopener">OKX Listings</a>
+      <a href="https://www.coindesk.com" target="_blank" rel="noopener">CoinDesk</a>
+      <a href="https://decrypt.co" target="_blank" rel="noopener">Decrypt</a>
+    </div>
+  </footer>
+
+</div>
+<script>
+// ─── Watchlist ────────────────────────────────────────────────────────────────
+const GROUPS = [
+  {
+    label: "Major",
+    tokens: [
+      { symbol:"BTC",     name:"Bitcoin",           id:"bitcoin" },
+      { symbol:"ETH",     name:"Ethereum",          id:"ethereum" },
+      { symbol:"BNB",     name:"BNB",               id:"binancecoin" },
+      { symbol:"SOL",     name:"Solana",            id:"solana" },
+    ]
+  },
+  {
+    label: "AI Agents",
+    tokens: [
+      { symbol:"TAO",     name:"Bittensor",         id:"bittensor" },
+      { symbol:"FET",     name:"Fetch.ai",          id:"fetch-ai" },
+      { symbol:"NEAR",    name:"NEAR Protocol",     id:"near" },
+      { symbol:"RENDER",  name:"Render",            id:"render-token" },
+      { symbol:"VIRTUAL", name:"Virtuals Protocol", id:"virtual-protocol" },
+      // TODO: Add PING / x402 here once it has a reliable CoinGecko id
+    ]
+  },
+  {
+    label: "DeFi Blue Chips",
+    tokens: [
+      { symbol:"UNI",  name:"Uniswap",   id:"uniswap" },
+      { symbol:"AAVE", name:"Aave",      id:"aave" },
+      { symbol:"CRV",  name:"Curve DAO", id:"curve-dao-token" },
+    ]
+  }
+];
+
+const ALL_IDS = GROUPS.flatMap(g => g.tokens.map(t => t.id));
+const GC_URL  = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd`
+              + `&ids=${ALL_IDS.join(",")}&price_change_percentage=24h&sparkline=false`;
+
+// CryptoCompare news — free, CORS-enabled, no key required for basic use
+const NEWS_URL = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest";
+
+// ─── Keyword buckets for news categorisation ──────────────────────────────────
+const TAGS = {
+  x402:  ["0x402","x402","http 402","402 payment","stablecoin payment","payment protocol","micropayment","pay-per-call","coinbase pay"],
+  ai:    ["ai agent","artificial intelligence","bittensor","fetch.ai","fetch ai","near protocol","render network","virtual protocol","virtuals","autonomous agent","large language model","llm","machine learning"],
+  defi:  ["defi","decentralized finance","uniswap","aave","curve","compound","liquidity","yield farming","tvl","total value locked","dex","amm","lending protocol","staking","liquid staking","lido","eigenlayer","restaking"],
+  macro: ["federal reserve","fed rate","interest rate","inflation","cpi","sec","cftc","regulation","regulatory","congress","senate","bitcoin etf","etf approval","tariff","gdp","recession","treasury","boj","ecb","monetary policy","enforcement action","lawsuit","ban","legal tender","cbdc"],
+};
+
+function classifyArticle(item) {
+  const text = ((item.title || "") + " " + (item.body || "") + " " + (item.tags || "")).toLowerCase();
+  if (TAGS.x402.some(k => text.includes(k)))  return "x402";
+  if (TAGS.ai.some(k => text.includes(k)))    return "ai";
+  if (TAGS.defi.some(k => text.includes(k)))  return "defi";
+  if (TAGS.macro.some(k => text.includes(k))) return "macro";
+  return "general";
+}
+
+const TAG_META = {
+  x402:   { label:"0x402",     cls:"tag-x402" },
+  ai:     { label:"AI",        cls:"tag-ai" },
+  defi:   { label:"DeFi",      cls:"tag-defi" },
+  macro:  { label:"Macro/Reg", cls:"tag-macro" },
+  general:{ label:"Crypto",    cls:"tag-general" },
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let lastGoodData = null;
+let allNews      = [];
+let activeTab    = "all";
+let retryTimer   = null;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt    = (n, d=2) => n == null ? "—" : n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtUSD = n => {
+  if (n == null) return "—";
+  if (n >= 1000) return "$" + fmt(n, 0);
+  if (n >= 1)    return "$" + fmt(n, 2);
+  return "$" + n.toPrecision(4);
+};
+const pctCls   = v => v > .05 ? "up" : v < -.05 ? "dn" : "flat";
+const pctArrow = v => v > .05 ? "▲" : v < -.05 ? "▼" : "–";
+const clamp    = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+const rangePct = (price, low, high) => high <= low ? 50 : clamp(((price-low)/(high-low))*100, 2, 98);
+const timeAgo  = ts => {
+  const s = Math.floor((Date.now()/1000) - ts);
+  if (s < 60)   return "just now";
+  if (s < 3600) return Math.floor(s/60) + "m ago";
+  if (s < 86400)return Math.floor(s/3600) + "h ago";
+  return Math.floor(s/86400) + "d ago";
+};
+
+// ─── Tone ─────────────────────────────────────────────────────────────────────
+function computeTone(dm) {
+  const vals = GROUPS[0].tokens.map(t => dm[t.id]?.price_change_percentage_24h ?? null).filter(v=>v!==null);
+  if (!vals.length) return { avg:0, label:"Unknown", cls:"tone-neutral" };
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  return {
+    avg,
+    label: avg > 1 ? "Risk-on" : avg < -1 ? "Risk-off" : "Mixed",
+    cls:   avg > 1 ? "tone-positive" : avg < -1 ? "tone-negative" : "tone-neutral",
+  };
+}
+
+// ─── "Today's Read" narrative ─────────────────────────────────────────────────
+function computeRead(dm, tone) {
+  const all = ALL_IDS.map(id=>dm[id]).filter(Boolean);
+  if (!all.length) return "No data available.";
+  const sorted = [...all].sort((a,b)=>(b.price_change_percentage_24h??0)-(a.price_change_percentage_24h??0));
+  const best=sorted[0], worst=sorted[sorted.length-1];
+  const bSym=best?.symbol?.toUpperCase()??"—", wSym=worst?.symbol?.toUpperCase()??"—";
+  const bPct=best?.price_change_percentage_24h??0, wPct=worst?.price_change_percentage_24h??0;
+  const nearTop    = all.filter(t=>rangePct(t.current_price,t.low_24h,t.high_24h)>80);
+  const nearBottom = all.filter(t=>rangePct(t.current_price,t.low_24h,t.high_24h)<20);
+  const avg = tone.avg>=0?`+${fmt(tone.avg)}`:`${fmt(tone.avg)}`;
+  let s1 = `The market is showing a ${tone.label.toLowerCase()} tone with the four majors averaging ${avg}% over 24 hours.`;
+  let s2 = `${bSym} leads the watchlist (${bPct>=0?"+":""}${fmt(bPct)}%), while ${wSym} is the biggest decliner (${fmt(wPct)}%).`;
+  let s3 = "";
+  if (nearTop.length) {
+    const syms = nearTop.map(t=>t.symbol.toUpperCase()).join(", ");
+    s3 = `${syms} ${nearTop.length===1?"is":"are"} trading near the top of the 24h range — watch for resistance.`;
+  } else if (nearBottom.length) {
+    const syms = nearBottom.map(t=>t.symbol.toUpperCase()).join(", ");
+    s3 = `${syms} ${nearBottom.length===1?"is":"are"} near the 24h low — possible support zone.`;
+  }
+  return [s1,s2,s3].filter(Boolean).join(" ");
+}
+
+// ─── Macro context card ───────────────────────────────────────────────────────
+function renderMacroCard() {
+  const signals = [
+    { label:"Fed Rate",     value:"5.25–5.50%", note:"Hold — next FOMC watch" },
+    { label:"BTC ETF Flow", value:"Monitor",    note:"Check Bloomberg/Farside daily" },
+    { label:"Regulation",   value:"Watch SEC",  note:"Enforcement actions + ETF news" },
+    { label:"0x402 Status", value:"TODO",       note:"No CoinGecko id yet — see footer" },
+  ];
+  document.getElementById("macroGrid").innerHTML = signals.map(s=>`
+    <div class="macro-item">
+      <div class="macro-label">${s.label}</div>
+      <div class="macro-value">${s.value}</div>
+      <div class="macro-note">${s.note}</div>
+    </div>
+  `).join("");
+  document.getElementById("macroTip").innerHTML =
+    `Key macro reads: <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" rel="noopener">BTC ETF flows</a> · ` +
+    `<a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">FOMC calendar</a> · ` +
+    `<a href="https://defillama.com/chains" target="_blank" rel="noopener">DeFiLlama TVL</a> · ` +
+    `<a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Fear &amp; Greed Index</a>`;
+}
+
+// ─── News rendering ───────────────────────────────────────────────────────────
+function renderNews() {
+  const list   = document.getElementById("newsList");
+  const filtered = activeTab === "all"
+    ? allNews
+    : allNews.filter(n => n._tag === activeTab);
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="news-empty">No ${activeTab === "all" ? "" : activeTab + " "}news loaded yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.slice(0, 20).map(item => {
+    const tag = TAG_META[item._tag] || TAG_META.general;
+    return `
+      <div class="news-item">
+        <span class="news-tag ${tag.cls}">${tag.label}</span>
+        <a class="news-headline" href="${escHtml(item.url)}" target="_blank" rel="noopener noreferrer">
+          ${escHtml(item.title)}
+        </a>
+        <div class="news-meta">${escHtml(item.source_info?.name || item.source || "")} · ${timeAgo(item.published_on)}</div>
+      </div>`;
+  }).join("");
+}
+
+function escHtml(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ─── Fetch news ───────────────────────────────────────────────────────────────
+async function fetchNews() {
+  try {
+    const res = await fetch(NEWS_URL, { cache:"no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.Data) throw new Error("Unexpected shape");
+    allNews = data.Data.map(item => ({ ...item, _tag: classifyArticle(item) }));
+    renderNews();
+  } catch (err) {
+    console.warn("News fetch failed:", err);
+    // Try snapshot fallback
+    try {
+      const snap = await fetch("snapshot.json",{cache:"no-store"}).then(r=>r.json());
+      if (snap?.news?.length) {
+        allNews = snap.news.map(item=>({...item, _tag: classifyArticle(item)}));
+        renderNews();
+      } else {
+        document.getElementById("newsList").innerHTML =
+          `<div class="news-empty">News unavailable — check your connection.</div>`;
+      }
+    } catch { /* ignore */ }
+  }
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+document.getElementById("tabBar").addEventListener("click", e => {
+  const btn = e.target.closest(".tab-btn");
+  if (!btn) return;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  activeTab = btn.dataset.tab;
+  renderNews();
+});
+
+// ─── Prices render ────────────────────────────────────────────────────────────
+function render(dm, isLive) {
+  const tone = computeTone(dm);
+
+  document.getElementById("toneCard").innerHTML = `
+    <div class="card-title">Market Tone — 4 Majors</div>
+    <div class="tone-value ${tone.cls}">${tone.avg>=0?"+":""}${fmt(tone.avg)}%</div>
+    <div class="tone-label ${tone.cls}">${tone.label}</div>`;
+
+  document.getElementById("readCard").innerHTML = `
+    <div class="card-title">Today's Read</div>
+    <div class="read-text">${computeRead(dm, tone)}</div>`;
+
+  const container = document.getElementById("tokenGroups");
+  container.innerHTML = "";
+  for (const group of GROUPS) {
+    const lbl = document.createElement("div");
+    lbl.className = "group-label";
+    lbl.textContent = group.label;
+    container.appendChild(lbl);
+
+    const sorted = [...group.tokens].sort((a,b) =>
+      (dm[b.id]?.price_change_percentage_24h ?? -Infinity) -
+      (dm[a.id]?.price_change_percentage_24h ?? -Infinity));
+
+    for (const token of sorted) {
+      const d   = dm[token.id];
+      const pct = d?.price_change_percentage_24h ?? null;
+      const cls = pct!=null ? pctCls(pct) : "flat";
+      const arr = pct!=null ? pctArrow(pct) : "–";
+      const rp  = d ? rangePct(d.current_price, d.low_24h, d.high_24h) : 50;
+      const card = document.createElement("div");
+      card.className = "token-card";
+      card.innerHTML = `
+        <div class="token-row">
+          <div><div class="token-symbol">${token.symbol}</div><div class="token-name">${token.name}</div></div>
+          <div>
+            <div class="token-price">${d ? fmtUSD(d.current_price) : "—"}</div>
+            <div class="token-change ${cls}">${arr} ${pct!=null ? Math.abs(pct).toFixed(2)+"%" : "—"}</div>
+          </div>
+        </div>
+        ${d ? `
+        <div class="range-bar-wrap">
+          <div class="range-labels">
+            <span>${fmtUSD(d.low_24h)}</span><span>24h range</span><span>${fmtUSD(d.high_24h)}</span>
+          </div>
+          <div class="range-track"><div class="range-marker" style="left:${rp}%"></div></div>
+        </div>` : ""}`;
+      container.appendChild(card);
+    }
+  }
+
+  const dot  = document.getElementById("liveDot");
+  const tsEl = document.getElementById("liveTs");
+  if (isLive) {
+    dot.className = "status-dot live";
+    tsEl.textContent = "Live · updated " + new Date().toLocaleTimeString();
+  } else {
+    dot.className = "status-dot error";
+    tsEl.textContent = "Using cached data — live fetch unavailable";
+  }
+}
+
+// ─── Live price fetch ─────────────────────────────────────────────────────────
+async function fetchLive() {
+  const res = await fetch(GC_URL, { cache:"no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const list = await res.json();
+  const map = {};
+  for (const c of list) map[c.id] = c;
+  return map;
+}
+
+async function loadSnapshot() {
+  try {
+    const res = await fetch("snapshot.json", { cache:"no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+function showSnapshotMeta(snap) {
+  if (!snap?.local_time) return;
+  const el = document.getElementById("snapshotLine");
+  el.textContent = `Snapshot: ${snap.local_time}`;
+  el.style.display = "";
+}
+
+function showBanner(msg) {
+  const b = document.getElementById("errorBanner");
+  b.textContent = msg; b.style.display = "";
+}
+function hideBanner() { document.getElementById("errorBanner").style.display = "none"; }
+
+// ─── Main refresh ─────────────────────────────────────────────────────────────
+async function refresh() {
+  const btn = document.getElementById("refreshBtn");
+  btn.disabled = true; btn.textContent = "↻ Refreshing…";
+  clearTimeout(retryTimer); hideBanner();
+
+  try {
+    const dm = await fetchLive();
+    lastGoodData = dm;
+    render(dm, true);
+  } catch (err) {
+    console.warn("Live price fetch failed:", err);
+    if (lastGoodData) {
+      render(lastGoodData, false);
+      showBanner("Live data unavailable — showing last good data. Retrying in 60s…");
+    } else {
+      const snap = await loadSnapshot();
+      if (snap?.tokens) {
+        const map = {};
+        for (const t of snap.tokens) map[t.id] = t;
+        render(map, false);
+        showBanner("CoinGecko unreachable — showing 7 AM snapshot. Retrying in 60s…");
+      } else {
+        showBanner("Price data unavailable. Check your connection and refresh.");
+        document.getElementById("liveDot").className = "status-dot error";
+        document.getElementById("liveTs").textContent = "Data unavailable";
+      }
+    }
+    retryTimer = setTimeout(refresh, 60_000);
+  } finally {
+    btn.disabled = false; btn.textContent = "↻ Refresh";
+  }
+
+  // Always try to refresh news too
+  fetchNews();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+renderMacroCard();
+
+(async () => {
+  const snap = await loadSnapshot();
+  showSnapshotMeta(snap);
+  await refresh();
+})();
+</script>
+</body>
+</html>
