@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crypto Monitor</title>
+  <title>加密货币监控</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Crypto Monitor" />
+  <meta name="apple-mobile-web-app-title" content="加密监控" />
   <meta name="theme-color" content="#ffffff" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,6 +17,7 @@
       --red:    #dc2626;
       --amber:  #d97706;
       --blue:   #2563eb;
+      --purple: #7c3aed;
       --bg:     #f8fafc;
       --card:   #ffffff;
       --border: #e2e8f0;
@@ -26,7 +27,8 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, "PingFang SC", "Hiragino Sans GB",
+                   "Microsoft YaHei", BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -37,102 +39,172 @@
 
     /* ── Header ── */
     header { margin-bottom: 20px; }
-    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
-    .header-meta { margin-top: 4px; font-size: 0.75rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -.01em; }
+    .header-meta { margin-top: 4px; font-size: .75rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
     .status-dot {
-      display: inline-block; width: 7px; height: 7px;
-      border-radius: 50%; background: #94a3b8;
-      margin-right: 4px; vertical-align: middle;
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: #94a3b8; margin-right: 4px; vertical-align: middle;
     }
     .status-dot.live  { background: var(--green); animation: pulse 2s infinite; }
     .status-dot.error { background: var(--red); }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
-    /* ── Cards ── */
+    /* ── Card base ── */
     .card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
     }
     .card-title {
-      font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+      font-size: .65rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--muted); margin-bottom: 10px;
     }
 
     /* ── Tone ── */
     .tone-value { font-size: 2rem; font-weight: 700; line-height: 1; }
-    .tone-label { font-size: 1rem; font-weight: 600; margin-top: 2px; }
+    .tone-label { font-size: 1rem; font-weight: 600; margin-top: 3px; }
     .tone-positive { color: var(--green); }
     .tone-negative { color: var(--red); }
     .tone-neutral  { color: var(--amber); }
 
-    /* ── Today's Read ── */
-    .read-text { font-size: .875rem; line-height: 1.6; color: #334155; }
-
-    /* ── Macro context ── */
-    .macro-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    }
-    .macro-item { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
-    .macro-label { font-size: .65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
-    .macro-value { font-size: .9rem; font-weight: 700; margin-top: 2px; }
-    .macro-note  { font-size: .65rem; color: var(--muted); margin-top: 2px; }
-    .macro-tip   { font-size: .75rem; color: var(--muted); margin-top: 10px; line-height: 1.5; }
-    .macro-tip a { color: var(--blue); text-decoration: none; }
-    .macro-tip a:hover { text-decoration: underline; }
-
-    /* ── News tabs ── */
-    .tab-bar {
-      display: flex; gap: 4px; overflow-x: auto;
-      margin-bottom: 12px; padding-bottom: 2px;
-      scrollbar-width: none;
-    }
-    .tab-bar::-webkit-scrollbar { display: none; }
-    .tab-btn {
-      flex-shrink: 0; padding: 5px 12px; border-radius: 99px;
-      border: 1px solid var(--border); background: var(--card);
-      font-size: .75rem; font-weight: 600; color: var(--muted);
-      cursor: pointer; white-space: nowrap; transition: all .15s;
-    }
-    .tab-btn.active {
-      background: var(--text); color: #fff; border-color: var(--text);
-    }
-
-    /* ── News list ── */
-    .news-list { display: flex; flex-direction: column; gap: 10px; }
-    .news-item { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .news-headline {
-      font-size: .85rem; font-weight: 600; line-height: 1.4;
-      color: var(--text); text-decoration: none;
-    }
-    .news-headline:hover { color: var(--blue); }
-    .news-meta { font-size: .68rem; color: var(--muted); margin-top: 3px; }
-    .news-tag {
-      display: inline-block; font-size: .6rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .06em;
-      padding: 1px 5px; border-radius: 4px; margin-right: 4px;
-    }
-    .tag-defi    { background: #dbeafe; color: #1d4ed8; }
-    .tag-ai      { background: #f3e8ff; color: #7c3aed; }
-    .tag-x402    { background: #fef9c3; color: #854d0e; }
-    .tag-macro   { background: #fee2e2; color: #991b1b; }
-    .tag-general { background: #f1f5f9; color: #475569; }
-    .news-empty  { font-size: .8rem; color: var(--muted); text-align: center; padding: 20px 0; }
-
     /* ── Banner ── */
     .banner {
-      background: #fef3c7; border: 1px solid #fcd34d;
-      border-radius: var(--radius); padding: 10px 14px;
-      font-size: .8rem; color: #92400e; margin-bottom: 12px; display: none;
+      background: #fef3c7; border: 1px solid #fcd34d; border-radius: var(--radius);
+      padding: 10px 14px; font-size: .8rem; color: #92400e;
+      margin-bottom: 12px; display: none;
     }
 
-    /* ── Group labels ── */
+    /* ── Section label ── */
+    .section-label {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--muted);
+      margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content:""; flex:1; height:1px; background:var(--border); }
+
+    /* ── Accordion ── */
+    .accordion {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+    }
+    .accordion-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px; cursor: pointer;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      transition: background .15s;
+    }
+    .accordion-header:hover { background: #f8fafc; }
+    .accordion-header:active { background: #f1f5f9; }
+
+    .accordion-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .accordion-title {
+      flex: 1; font-size: .9rem; font-weight: 700; color: var(--text);
+    }
+    .accordion-summary {
+      font-size: .72rem; color: var(--muted); margin-right: 6px;
+      text-align: right; line-height: 1.3; max-width: 120px;
+    }
+    .accordion-arrow {
+      color: var(--muted); font-size: .8rem; flex-shrink: 0;
+      transition: transform .25s ease;
+    }
+    .accordion.open .accordion-arrow { transform: rotate(180deg); }
+
+    .accordion-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height .35s ease;
+    }
+    .accordion.open .accordion-body { max-height: 4000px; }
+
+    .accordion-content {
+      padding: 0 16px 16px; border-top: 1px solid var(--border);
+    }
+
+    /* ── Analysis blocks ── */
+    .analysis-section { margin-top: 14px; }
+    .analysis-heading {
+      font-size: .72rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
+    }
+    .analysis-para {
+      font-size: .85rem; line-height: 1.75; color: #334155; margin-bottom: 10px;
+    }
+    .analysis-para:last-child { margin-bottom: 0; }
+
+    /* ── Metrics grid ── */
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+      margin-bottom: 12px;
+    }
+    .metric-box {
+      background: var(--bg); border-radius: 8px; padding: 10px 12px;
+    }
+    .metric-label { font-size: .65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    .metric-value { font-size: .95rem; font-weight: 700; margin-top: 2px; }
+    .metric-note  { font-size: .65rem; color: var(--muted); margin-top: 1px; }
+    .metric-up   { color: var(--green); }
+    .metric-down { color: var(--red); }
+    .metric-flat { color: var(--amber); }
+
+    /* ── Token mini-row ── */
+    .token-mini {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+    .token-mini:last-child { border-bottom: none; }
+    .token-mini-left { display: flex; gap: 8px; align-items: baseline; }
+    .token-mini-sym { font-weight: 700; }
+    .token-mini-name { font-size: .72rem; color: var(--muted); }
+    .token-mini-right { display: flex; gap: 12px; align-items: center; }
+    .token-mini-price { font-weight: 600; }
+    .token-mini-pct   { font-weight: 700; font-size: .8rem; min-width: 56px; text-align: right; }
+    .token-mini-range {
+      width: 50px; height: 3px; background: #e2e8f0; border-radius: 99px;
+      position: relative; flex-shrink: 0;
+    }
+    .token-mini-marker {
+      position: absolute; top: -3px; width: 9px; height: 9px;
+      background: #475569; border-radius: 50%; transform: translateX(-50%);
+    }
+
+    /* ── News inside accordion ── */
+    .news-list-inner { margin-top: 4px; }
+    .news-item-inner {
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .news-item-inner:last-child { border-bottom: none; }
+    .news-title-inner {
+      font-size: .82rem; font-weight: 600; line-height: 1.4;
+      color: var(--text); text-decoration: none; display: block;
+    }
+    .news-title-inner:hover { color: var(--blue); }
+    .news-meta-inner { font-size: .65rem; color: var(--muted); margin-top: 2px; }
+    .news-empty-inner { font-size: .78rem; color: var(--muted); padding: 10px 0; }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: #eff6ff; border-left: 3px solid var(--blue);
+      border-radius: 0 6px 6px 0; padding: 10px 12px; margin: 10px 0;
+      font-size: .82rem; line-height: 1.7; color: #1e40af;
+    }
+    .highlight-box.amber {
+      background: #fffbeb; border-color: var(--amber); color: #92400e;
+    }
+    .highlight-box.green {
+      background: #f0fdf4; border-color: var(--green); color: #166534;
+    }
+    .highlight-box.red {
+      background: #fef2f2; border-color: var(--red); color: #991b1b;
+    }
+
+    /* ── Divider ── */
+    .mini-divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+    /* ── Price cards ── */
     .group-label {
       font-size: .65rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .1em; color: var(--muted); margin: 18px 0 8px;
+      letter-spacing: .1em; color: var(--muted); margin: 16px 0 8px;
     }
-
-    /* ── Token cards ── */
     .token-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
@@ -141,20 +213,16 @@
     .token-symbol { font-size: .95rem; font-weight: 700; }
     .token-name   { font-size: .72rem; color: var(--muted); margin-top: 1px; }
     .token-price  { font-size: .95rem; font-weight: 600; text-align: right; }
-    .token-change { font-size: .8rem;  font-weight: 600; text-align: right; margin-top: 1px; }
+    .token-change { font-size: .8rem; font-weight: 600; text-align: right; margin-top: 1px; }
     .up   { color: var(--green); }
     .dn   { color: var(--red); }
     .flat { color: var(--muted); }
-
-    /* ── Range bar ── */
     .range-bar-wrap { margin-top: 10px; }
     .range-labels {
       display: flex; justify-content: space-between;
       font-size: .65rem; color: var(--muted); margin-bottom: 4px;
     }
-    .range-track {
-      height: 4px; background: #e2e8f0; border-radius: 9999px; position: relative;
-    }
+    .range-track { height: 4px; background: #e2e8f0; border-radius: 9999px; position: relative; }
     .range-marker {
       position: absolute; top: -3px; width: 10px; height: 10px;
       background: #334155; border-radius: 50%; transform: translateX(-50%);
@@ -164,38 +232,26 @@
     /* ── Skeleton ── */
     .skeleton {
       background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);
-      background-size: 200% 100%; animation: shimmer 1.4s infinite;
-      border-radius: 6px;
+      background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px;
     }
     @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
 
     /* ── Refresh button ── */
     .refresh-btn {
-      display: block; width: 100%; margin-top: 8px;
-      padding: 12px; border-radius: var(--radius);
-      border: 1px solid var(--border); background: var(--card);
-      font-size: .875rem; font-weight: 600; color: var(--text);
-      cursor: pointer; transition: background .15s;
+      display: block; width: 100%; margin-top: 8px; padding: 12px;
+      border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--card); font-size: .875rem; font-weight: 600;
+      color: var(--text); cursor: pointer; transition: background .15s;
     }
     .refresh-btn:hover    { background: #f1f5f9; }
     .refresh-btn:active   { background: #e2e8f0; }
     .refresh-btn:disabled { color: var(--muted); cursor: not-allowed; }
 
-    /* ── Section divider ── */
-    .section-divider {
-      font-size: .65rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .1em; color: var(--muted);
-      margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;
-    }
-    .section-divider::after {
-      content: ""; flex: 1; height: 1px; background: var(--border);
-    }
-
     /* ── Footer ── */
     footer {
       margin-top: 24px; padding: 16px 0 8px;
       border-top: 1px solid var(--border);
-      font-size: .72rem; color: var(--muted); line-height: 1.7;
+      font-size: .72rem; color: var(--muted); line-height: 1.8;
     }
     footer .disclaimer { margin-bottom: 10px; font-style: italic; }
     footer .links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
@@ -207,9 +263,9 @@
 <div class="container">
 
   <header>
-    <h1>Crypto Monitor</h1>
+    <h1>加密货币监控</h1>
     <div class="header-meta">
-      <span><span class="status-dot" id="liveDot"></span><span id="liveTs">Loading…</span></span>
+      <span><span class="status-dot" id="liveDot"></span><span id="liveTs">正在加载…</span></span>
       <span id="snapshotLine" style="display:none"></span>
     </div>
   </header>
@@ -218,64 +274,38 @@
 
   <!-- Market Tone -->
   <div class="card" id="toneCard">
-    <div class="card-title">Market Tone — 4 Majors</div>
+    <div class="card-title">市场情绪 — 四大主力</div>
     <div class="skeleton" style="height:2rem;width:80px;margin-bottom:6px"></div>
-    <div class="skeleton" style="height:1rem;width:120px"></div>
+    <div class="skeleton" style="height:1rem;width:140px"></div>
   </div>
 
-  <!-- Today's Read -->
-  <div class="card" id="readCard">
-    <div class="card-title">Today's Read</div>
-    <div class="skeleton" style="height:.875rem;width:100%;margin-bottom:6px"></div>
-    <div class="skeleton" style="height:.875rem;width:85%"></div>
+  <!-- Analysis Accordions -->
+  <div class="section-label">深度分析</div>
+  <div id="accordionContainer">
+    <!-- rendered by JS -->
+    <div class="accordion"><div class="accordion-header"><div class="skeleton" style="height:1rem;width:60%;flex:1"></div></div></div>
+    <div class="accordion"><div class="accordion-header"><div class="skeleton" style="height:1rem;width:50%;flex:1"></div></div></div>
+    <div class="accordion"><div class="accordion-header"><div class="skeleton" style="height:1rem;width:55%;flex:1"></div></div></div>
+    <div class="accordion"><div class="accordion-header"><div class="skeleton" style="height:1rem;width:50%;flex:1"></div></div></div>
+    <div class="accordion"><div class="accordion-header"><div class="skeleton" style="height:1rem;width:45%;flex:1"></div></div></div>
   </div>
 
-  <!-- Macro Context -->
-  <div class="card" id="macroCard">
-    <div class="card-title">Macro &amp; Regulatory Context</div>
-    <div class="macro-grid" id="macroGrid">
-      <div class="macro-item skeleton" style="height:56px"></div>
-      <div class="macro-item skeleton" style="height:56px"></div>
-      <div class="macro-item skeleton" style="height:56px"></div>
-      <div class="macro-item skeleton" style="height:56px"></div>
-    </div>
-    <div class="macro-tip" id="macroTip"></div>
-  </div>
-
-  <!-- News Feed -->
-  <div class="section-divider">News &amp; Market Intelligence</div>
-
-  <div class="card" id="newsCard">
-    <div class="card-title">Latest Headlines</div>
-    <div class="tab-bar" id="tabBar">
-      <button class="tab-btn active" data-tab="all">All</button>
-      <button class="tab-btn" data-tab="defi">DeFi</button>
-      <button class="tab-btn" data-tab="ai">AI Agents</button>
-      <button class="tab-btn" data-tab="x402">0x402</button>
-      <button class="tab-btn" data-tab="macro">Macro / Reg</button>
-    </div>
-    <div class="news-list" id="newsList">
-      <div class="skeleton" style="height:52px;margin-bottom:8px"></div>
-      <div class="skeleton" style="height:52px;margin-bottom:8px"></div>
-      <div class="skeleton" style="height:52px"></div>
-    </div>
-  </div>
-
-  <!-- Token Groups -->
-  <div class="section-divider">Prices</div>
+  <!-- Price section -->
+  <div class="section-label">实时价格行情</div>
   <div id="tokenGroups"></div>
 
-  <button class="refresh-btn" id="refreshBtn" onclick="refresh()">↻ Refresh</button>
+  <button class="refresh-btn" id="refreshBtn" onclick="doRefresh()">↻ 刷新数据</button>
 
   <footer>
-    <div class="disclaimer">Informational only — not financial advice. Verify on your exchange before trading.</div>
+    <div class="disclaimer">仅供参考，不构成投资建议。交易前请在您的交易所核实价格。</div>
     <div class="links">
       <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
-      <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Fear &amp; Greed</a>
-      <a href="https://defillama.com" target="_blank" rel="noopener">DeFiLlama</a>
-      <a href="https://www.binance.com/en/new-cryptocurrency-listing" target="_blank" rel="noopener">Binance Listings</a>
-      <a href="https://www.bitget.com/en/new-crypto" target="_blank" rel="noopener">Bitget Listings</a>
-      <a href="https://www.okx.com/markets/new-listings" target="_blank" rel="noopener">OKX Listings</a>
+      <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">恐慌贪婪指数</a>
+      <a href="https://defillama.com" target="_blank" rel="noopener">DeFiLlama TVL</a>
+      <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" rel="noopener">BTC ETF 资金流向</a>
+      <a href="https://www.binance.com/en/new-cryptocurrency-listing" target="_blank" rel="noopener">币安新币上线</a>
+      <a href="https://www.bitget.com/en/new-crypto" target="_blank" rel="noopener">Bitget 新币</a>
+      <a href="https://www.okx.com/markets/new-listings" target="_blank" rel="noopener">OKX 新币</a>
       <a href="https://www.coindesk.com" target="_blank" rel="noopener">CoinDesk</a>
       <a href="https://decrypt.co" target="_blank" rel="noopener">Decrypt</a>
     </div>
@@ -286,27 +316,27 @@
 // ─── Watchlist ────────────────────────────────────────────────────────────────
 const GROUPS = [
   {
-    label: "Major",
+    label: "主力币种",
     tokens: [
-      { symbol:"BTC",     name:"Bitcoin",           id:"bitcoin" },
-      { symbol:"ETH",     name:"Ethereum",          id:"ethereum" },
-      { symbol:"BNB",     name:"BNB",               id:"binancecoin" },
-      { symbol:"SOL",     name:"Solana",            id:"solana" },
+      { symbol:"BTC",     name:"比特币",       id:"bitcoin" },
+      { symbol:"ETH",     name:"以太坊",        id:"ethereum" },
+      { symbol:"BNB",     name:"BNB",           id:"binancecoin" },
+      { symbol:"SOL",     name:"Solana",        id:"solana" },
     ]
   },
   {
-    label: "AI Agents",
+    label: "AI 代理赛道",
     tokens: [
-      { symbol:"TAO",     name:"Bittensor",         id:"bittensor" },
-      { symbol:"FET",     name:"Fetch.ai",          id:"fetch-ai" },
-      { symbol:"NEAR",    name:"NEAR Protocol",     id:"near" },
-      { symbol:"RENDER",  name:"Render",            id:"render-token" },
-      { symbol:"VIRTUAL", name:"Virtuals Protocol", id:"virtual-protocol" },
-      // TODO: Add PING / x402 here once it has a reliable CoinGecko id
+      { symbol:"TAO",     name:"Bittensor",     id:"bittensor" },
+      { symbol:"FET",     name:"Fetch.ai",      id:"fetch-ai" },
+      { symbol:"NEAR",    name:"NEAR Protocol", id:"near" },
+      { symbol:"RENDER",  name:"Render",        id:"render-token" },
+      { symbol:"VIRTUAL", name:"Virtuals",      id:"virtual-protocol" },
+      // TODO: 待 0x402/PING 在 CoinGecko 上线后在此添加，格式参考上方
     ]
   },
   {
-    label: "DeFi Blue Chips",
+    label: "DeFi 蓝筹",
     tokens: [
       { symbol:"UNI",  name:"Uniswap",   id:"uniswap" },
       { symbol:"AAVE", name:"Aave",      id:"aave" },
@@ -318,196 +348,715 @@ const GROUPS = [
 const ALL_IDS = GROUPS.flatMap(g => g.tokens.map(t => t.id));
 const GC_URL  = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd`
               + `&ids=${ALL_IDS.join(",")}&price_change_percentage=24h&sparkline=false`;
-
-// CryptoCompare news — free, CORS-enabled, no key required for basic use
 const NEWS_URL = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest";
 
-// ─── Keyword buckets for news categorisation ──────────────────────────────────
+// ─── News classification ──────────────────────────────────────────────────────
 const TAGS = {
-  x402:  ["0x402","x402","http 402","402 payment","stablecoin payment","payment protocol","micropayment","pay-per-call","coinbase pay"],
-  ai:    ["ai agent","artificial intelligence","bittensor","fetch.ai","fetch ai","near protocol","render network","virtual protocol","virtuals","autonomous agent","large language model","llm","machine learning"],
-  defi:  ["defi","decentralized finance","uniswap","aave","curve","compound","liquidity","yield farming","tvl","total value locked","dex","amm","lending protocol","staking","liquid staking","lido","eigenlayer","restaking"],
-  macro: ["federal reserve","fed rate","interest rate","inflation","cpi","sec","cftc","regulation","regulatory","congress","senate","bitcoin etf","etf approval","tariff","gdp","recession","treasury","boj","ecb","monetary policy","enforcement action","lawsuit","ban","legal tender","cbdc"],
+  x402:  ["0x402","x402","http 402","402 payment","payment protocol","micropayment","pay-per-call","coinbase pay","x402"],
+  ai:    ["ai agent","artificial intelligence","bittensor","fetch.ai","fetch ai","near protocol","render network","virtual protocol","virtuals","autonomous agent","large language model","llm","machine learning","generative ai"],
+  defi:  ["defi","decentralized finance","uniswap","aave","curve","compound","liquidity","yield farming","tvl","total value locked","dex","amm","lending protocol","staking","liquid staking","lido","eigenlayer","restaking","velodrome","balancer"],
+  macro: ["federal reserve","fed rate","interest rate","inflation","cpi","sec ","cftc","regulation","regulatory","congress","senate","bitcoin etf","etf approval","tariff","gdp","recession","treasury","boj","ecb","monetary policy","enforcement action","lawsuit","ban","legal tender","cbdc","basel","mica","fatf"],
 };
-
-function classifyArticle(item) {
-  const text = ((item.title || "") + " " + (item.body || "") + " " + (item.tags || "")).toLowerCase();
-  if (TAGS.x402.some(k => text.includes(k)))  return "x402";
-  if (TAGS.ai.some(k => text.includes(k)))    return "ai";
-  if (TAGS.defi.some(k => text.includes(k)))  return "defi";
-  if (TAGS.macro.some(k => text.includes(k))) return "macro";
+function classify(item) {
+  const t = ((item.title||"")+" "+(item.body||"")+" "+(item.tags||"")).toLowerCase();
+  if (TAGS.x402.some(k=>t.includes(k)))  return "x402";
+  if (TAGS.ai.some(k=>t.includes(k)))    return "ai";
+  if (TAGS.defi.some(k=>t.includes(k)))  return "defi";
+  if (TAGS.macro.some(k=>t.includes(k))) return "macro";
   return "general";
 }
 
-const TAG_META = {
-  x402:   { label:"0x402",     cls:"tag-x402" },
-  ai:     { label:"AI",        cls:"tag-ai" },
-  defi:   { label:"DeFi",      cls:"tag-defi" },
-  macro:  { label:"Macro/Reg", cls:"tag-macro" },
-  general:{ label:"Crypto",    cls:"tag-general" },
-};
-
 // ─── State ────────────────────────────────────────────────────────────────────
-let lastGoodData = null;
-let allNews      = [];
-let activeTab    = "all";
-let retryTimer   = null;
+let lastDm   = null;
+let allNews  = [];
+let retryTmr = null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt    = (n, d=2) => n == null ? "—" : n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc    = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmt    = (n,d=2) => n==null?"—":n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtUSD = n => {
-  if (n == null) return "—";
-  if (n >= 1000) return "$" + fmt(n, 0);
-  if (n >= 1)    return "$" + fmt(n, 2);
-  return "$" + n.toPrecision(4);
+  if (n==null) return "—";
+  if (n>=1000) return "$"+fmt(n,0);
+  if (n>=1)    return "$"+fmt(n,2);
+  return "$"+n.toPrecision(4);
 };
-const pctCls   = v => v > .05 ? "up" : v < -.05 ? "dn" : "flat";
-const pctArrow = v => v > .05 ? "▲" : v < -.05 ? "▼" : "–";
-const clamp    = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
-const rangePct = (price, low, high) => high <= low ? 50 : clamp(((price-low)/(high-low))*100, 2, 98);
+const pctCls   = v => v>.05?"up":v<-.05?"dn":"flat";
+const pctArrow = v => v>.05?"▲":v<-.05?"▼":"–";
+const clamp    = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
+const rp       = (p,lo,hi) => hi<=lo?50:clamp(((p-lo)/(hi-lo))*100,2,98);
 const timeAgo  = ts => {
-  const s = Math.floor((Date.now()/1000) - ts);
-  if (s < 60)   return "just now";
-  if (s < 3600) return Math.floor(s/60) + "m ago";
-  if (s < 86400)return Math.floor(s/3600) + "h ago";
-  return Math.floor(s/86400) + "d ago";
+  const s = Math.floor(Date.now()/1000 - ts);
+  if (s<60)   return "刚刚";
+  if (s<3600) return Math.floor(s/60)+"分钟前";
+  if (s<86400)return Math.floor(s/3600)+"小时前";
+  return Math.floor(s/86400)+"天前";
 };
 
-// ─── Tone ─────────────────────────────────────────────────────────────────────
+// Chinese-specific helpers
+function zhPct(v) {
+  if (v==null) return "暂无";
+  const sign = v>=0?"+":"";
+  return `${sign}${v.toFixed(2)}%`;
+}
+function pctCls2(v) { return v>0?"metric-up":v<0?"metric-down":"metric-flat"; }
+
+function groupAvg(group, dm) {
+  const vals = group.tokens
+    .map(t => dm[t.id]?.price_change_percentage_24h ?? null)
+    .filter(v=>v!==null);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+
+function rangeWord(pct) {
+  if (pct>=85) return "接近日高，动能强劲";
+  if (pct>=65) return "偏强区间，趋势延续";
+  if (pct>=45) return "中性区间，方向待明确";
+  if (pct>=25) return "偏弱区间，做多谨慎";
+  return "接近日低，关注企稳";
+}
+
+function sentimentWord(avg) {
+  if (avg==null)  return "数据不足";
+  if (avg>3)      return "强势多头";
+  if (avg>1)      return "温和偏多";
+  if (avg>-1)     return "多空平衡";
+  if (avg>-3)     return "温和偏空";
+  return "显著下跌";
+}
+
+function vsMarket(sectorAvg, majorAvg) {
+  if (majorAvg==null||sectorAvg==null) return "无法对比";
+  const diff = sectorAvg - majorAvg;
+  if (diff>2)  return "显著强于大盘";
+  if (diff>.5) return "小幅跑赢大盘";
+  if (diff>-.5)return "基本与大盘同步";
+  if (diff>-2) return "小幅落后大盘";
+  return "显著弱于大盘";
+}
+
+// ─── News HTML builder ────────────────────────────────────────────────────────
+function buildNewsHtml(tag, maxItems=5) {
+  const items = allNews.filter(n=>n._tag===tag).slice(0,maxItems);
+  if (!items.length) return `<div class="news-empty-inner">暂无相关新闻，新闻加载后将自动更新。</div>`;
+  return `<div class="news-list-inner">${items.map(item=>`
+    <div class="news-item-inner">
+      <a class="news-title-inner" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>
+      <div class="news-meta-inner">${esc(item.source||"")} · ${timeAgo(item.published_on)}</div>
+    </div>`).join("")}</div>`;
+}
+
+function buildMacroNewsHtml(maxItems=6) {
+  const items = allNews.filter(n=>n._tag==="macro").slice(0,maxItems);
+  if (!items.length) return `<div class="news-empty-inner">暂无宏观新闻，新闻加载后将自动更新。</div>`;
+  return `<div class="news-list-inner">${items.map(item=>`
+    <div class="news-item-inner">
+      <a class="news-title-inner" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a>
+      <div class="news-meta-inner">${esc(item.source||"")} · ${timeAgo(item.published_on)}</div>
+    </div>`).join("")}</div>`;
+}
+
+// ─── Analysis generators ──────────────────────────────────────────────────────
+
+function genMarketTrends(dm) {
+  const majAvg   = groupAvg(GROUPS[0], dm);
+  const aiAvg    = groupAvg(GROUPS[1], dm);
+  const defiAvg  = groupAvg(GROUPS[2], dm);
+
+  const allEntries = ALL_IDS.map(id=>dm[id]).filter(Boolean);
+  const sorted = [...allEntries].sort((a,b)=>
+    (b.price_change_percentage_24h??0)-(a.price_change_percentage_24h??0));
+  const topToken  = sorted[0];
+  const botToken  = sorted[sorted.length-1];
+
+  const nearHigh = allEntries.filter(t=>rp(t.current_price,t.low_24h,t.high_24h)>=75).length;
+  const nearLow  = allEntries.filter(t=>rp(t.current_price,t.low_24h,t.high_24h)<=25).length;
+
+  // Determine leading sector
+  const sectorRanking = [
+    { name:"AI代理",     avg:aiAvg },
+    { name:"DeFi蓝筹",   avg:defiAvg },
+    { name:"主力币种",   avg:majAvg },
+  ].filter(s=>s.avg!=null).sort((a,b)=>b.avg-a.avg);
+  const leadSector = sectorRanking[0]?.name ?? "—";
+  const lagSector  = sectorRanking[sectorRanking.length-1]?.name ?? "—";
+
+  // Momentum assessment
+  let momentumText;
+  if (nearHigh >= 7)       momentumText = "多数标的处于日内高位区间，多头动能充沛，但需防范短线过热。";
+  else if (nearHigh >= 4)  momentumText = "逾半数标的偏强，市场做多意愿较强，趋势尚未明显疲软。";
+  else if (nearLow >= 4)   momentumText = "多个标的跌近日低，空头压力较重，需关注是否出现企稳信号。";
+  else                     momentumText = "各标的分布较为分散，市场分歧较大，方向选择仍需观察。";
+
+  // Overall tone sentence
+  let toneSentence;
+  if (majAvg==null) {
+    toneSentence = "数据暂时不可用，请刷新后重试。";
+  } else if (majAvg>2) {
+    toneSentence = `四大主力24小时均涨 ${zhPct(majAvg)}，市场整体处于明显的风险偏好（Risk-on）状态，做多情绪主导。`;
+  } else if (majAvg>0.5) {
+    toneSentence = `四大主力24小时均涨 ${zhPct(majAvg)}，市场情绪温和偏多，但上涨力度有限，谨慎乐观。`;
+  } else if (majAvg>-0.5) {
+    toneSentence = `四大主力24小时均变动 ${zhPct(majAvg)}，市场多空力量基本平衡，方向性不明朗，建议观望为主。`;
+  } else if (majAvg>-2) {
+    toneSentence = `四大主力24小时均跌 ${zhPct(majAvg)}，市场情绪温和偏空，短线存在一定压力。`;
+  } else {
+    toneSentence = `四大主力24小时均跌 ${zhPct(majAvg)}，市场处于明显的风险规避（Risk-off）状态，建议控制仓位。`;
+  }
+
+  // Sector rotation text
+  let rotationText;
+  if (sectorRanking.length>=2) {
+    const top = sectorRanking[0];
+    const bot = sectorRanking[sectorRanking.length-1];
+    if (Math.abs((top.avg??0)-(bot.avg??0))>2) {
+      rotationText = `板块分化明显：${top.name}（${zhPct(top.avg)}）大幅领先${bot.name}（${zhPct(bot.avg)}），资金存在明显的板块轮动特征，市场偏好并非均匀分布。`;
+    } else {
+      rotationText = `各板块表现较为同步，${top.name}（${zhPct(top.avg)}）略微领先，市场整体联动性强，板块分化不显著。`;
+    }
+  } else {
+    rotationText = "板块数据加载中。";
+  }
+
+  const summary = majAvg!=null ? `${sentimentWord(majAvg)} · ${leadSector}领跑` : "加载中…";
+
+  const html = `
+    <div class="analysis-section">
+      <div class="analysis-heading">整体市场情绪</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">主力均值</div>
+          <div class="metric-value ${pctCls2(majAvg)}">${zhPct(majAvg)}</div>
+          <div class="metric-note">${sentimentWord(majAvg)}</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">今日领跑板块</div>
+          <div class="metric-value">${leadSector}</div>
+          <div class="metric-note">${zhPct(sectorRanking[0]?.avg)}</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">今日垫底板块</div>
+          <div class="metric-value">${lagSector}</div>
+          <div class="metric-note">${zhPct(sectorRanking[sectorRanking.length-1]?.avg)}</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">处于日内高位</div>
+          <div class="metric-value">${nearHigh} / ${allEntries.length}</div>
+          <div class="metric-note">价格在区间75%以上</div>
+        </div>
+      </div>
+      <div class="analysis-para">${toneSentence}</div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">板块轮动分析</div>
+      <div class="analysis-para">${rotationText}</div>
+      <div class="metrics-grid">
+        ${sectorRanking.map(s=>`
+          <div class="metric-box">
+            <div class="metric-label">${s.name}</div>
+            <div class="metric-value ${pctCls2(s.avg)}">${zhPct(s.avg)}</div>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">主力币种价格结构</div>
+      <div class="analysis-para">价格在24小时区间中的位置是短期动能的直观体现——处于高位说明买方主导，处于低位则需关注是否企稳。</div>
+      <div>${GROUPS[0].tokens.map(t=>{
+        const d = dm[t.id];
+        if (!d) return "";
+        const p = rp(d.current_price,d.low_24h,d.high_24h);
+        const pct = d.price_change_percentage_24h;
+        return `<div class="token-mini">
+          <div class="token-mini-left">
+            <span class="token-mini-sym">${t.symbol}</span>
+            <span class="token-mini-name">${rangeWord(p)}</span>
+          </div>
+          <div class="token-mini-right">
+            <span class="token-mini-pct ${pctCls(pct)}">${pctArrow(pct)} ${pct!=null?Math.abs(pct).toFixed(2)+"%":"—"}</span>
+            <div class="token-mini-range"><div class="token-mini-marker" style="left:${p}%"></div></div>
+          </div>
+        </div>`;
+      }).join("")}</div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">综合判断</div>
+      <div class="${majAvg!=null&&majAvg>0?"highlight-box green":majAvg!=null&&majAvg<-1?"highlight-box red":"highlight-box amber"}">
+        ${momentumText}${topToken&&botToken?` 今日全仓涨幅最大为 <strong>${topToken.symbol?.toUpperCase()}</strong>（${zhPct(topToken.price_change_percentage_24h)}），跌幅最大为 <strong>${botToken.symbol?.toUpperCase()}</strong>（${zhPct(botToken.price_change_percentage_24h)}）。`:""}
+      </div>
+    </div>`;
+
+  return { summary, html };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function genMacroAnalysis() {
+  const macroNews = allNews.filter(n=>n._tag==="macro");
+
+  // Determine regulatory tone from news headlines
+  const hasETF       = macroNews.some(n=>(n.title||"").toLowerCase().includes("etf"));
+  const hasFed       = macroNews.some(n=>(n.title||"").toLowerCase().includes("fed")||n.title?.toLowerCase().includes("interest rate"));
+  const hasEnforce   = macroNews.some(n=>(n.title||"").toLowerCase().includes("sec")||n.title?.toLowerCase().includes("enforcement")||n.title?.toLowerCase().includes("lawsuit"));
+  const hasTariff    = macroNews.some(n=>(n.title||"").toLowerCase().includes("tariff")||n.title?.toLowerCase().includes("trade war"));
+
+  const newsCount = macroNews.length;
+  const summary   = newsCount>0 ? `${newsCount}条宏观/监管动态` : "宏观背景·政策动态";
+
+  const html = `
+    <div class="analysis-section">
+      <div class="analysis-heading">当前宏观背景</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">美联储利率</div>
+          <div class="metric-value">5.25–5.50%</div>
+          <div class="metric-note">关注FOMC会议纪要</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">BTC现货ETF</div>
+          <div class="metric-value metric-up">已获批准</div>
+          <div class="metric-note">持续监控资金净流入</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">监管态势</div>
+          <div class="metric-value ${hasEnforce?"metric-down":"metric-flat"}">${hasEnforce?"注意风险":"中性观察"}</div>
+          <div class="metric-note">SEC/CFTC执法动向</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">全球贸易</div>
+          <div class="metric-value ${hasTariff?"metric-down":"metric-flat"}">${hasTariff?"关税压力":"相对稳定"}</div>
+          <div class="metric-note">影响风险资产整体情绪</div>
+        </div>
+      </div>
+
+      <div class="analysis-para">
+        宏观环境对加密货币市场的影响日益深远。美联储的利率决策直接左右全球流动性预期——降息周期通常利好风险资产，加息或维持高利率则可能压制加密资产估值。
+        当前高利率背景下，市场对政策转向的预期博弈仍是主要叙事之一，每次CPI数据与FOMC声明都需密切关注。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">BTC现货ETF — 机构资金的关键窗口</div>
+      <div class="analysis-para">
+        比特币现货ETF于2024年1月获SEC批准，标志着加密市场进入机构化新阶段。
+        贝莱德（BlackRock）、富达（Fidelity）等大型资管的日净流入数据现已成为判断机构情绪最直观的指标之一。
+        持续净流入通常支撑价格，而连续净流出则可能触发短期卖压。
+        <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" rel="noopener" style="color:var(--blue)">查看实时ETF资金流向 →</a>
+      </div>
+      ${hasETF ? `<div class="highlight-box">今日新闻中检测到ETF相关报道，建议结合下方新闻进一步研判。</div>` : ""}
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">监管与合规动态</div>
+      <div class="analysis-para">
+        全球监管格局仍处于演变期。美国SEC与CFTC对交易所和代币的定性分歧持续，
+        欧盟MiCA法规已于2024年正式生效并设定了合规路线图，香港与新加坡持续扩大持牌交易框架。
+        监管执法行动短期内可能引发市场波动，但长期合规化趋势有助于机构资金的进入。
+        ${hasEnforce?"<br><br><strong>注意：</strong>今日新闻中检测到可能的执法或法律动态，请查阅下方新闻详情。":""}
+      </div>
+      <div class="analysis-para">
+        对于持仓者而言，重点关注：①SEC是否对持仓代币发出证券认定；②交易所（尤其是境外平台）合规状态；
+        ③反洗钱（AML）新规对链上交易的影响。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">今日宏观与政策新闻</div>
+      <div id="newsInMacro">${buildMacroNewsHtml()}</div>
+      <div style="margin-top:8px;font-size:.72rem;color:var(--muted)">
+        更多参考：
+        <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener" style="color:var(--blue)">FOMC日历</a> ·
+        <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener" style="color:var(--blue)">恐慌贪婪指数</a>
+      </div>
+    </div>`;
+
+  return { summary, html };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function genDeFiAnalysis(dm) {
+  const defiGroup = GROUPS[2];
+  const majAvg    = groupAvg(GROUPS[0], dm);
+  const defiAvg   = groupAvg(defiGroup, dm);
+  const defiNews  = allNews.filter(n=>n._tag==="defi");
+
+  const sorted = [...defiGroup.tokens]
+    .map(t=>({ ...t, d:dm[t.id] }))
+    .filter(t=>t.d)
+    .sort((a,b)=>
+      (b.d.price_change_percentage_24h??0)-(a.d.price_change_percentage_24h??0));
+
+  const leader   = sorted[0];
+  const laggard  = sorted[sorted.length-1];
+  const vsStr    = vsMarket(defiAvg, majAvg);
+  const summary  = defiAvg!=null ? `${zhPct(defiAvg)} · ${vsStr}` : "DeFi赛道分析";
+
+  // Analysis text
+  let vsAnalysis;
+  if (majAvg!=null && defiAvg!=null) {
+    const diff = defiAvg - majAvg;
+    if (diff>2)  vsAnalysis = "DeFi赛道今日显著强于大盘，资金存在明显的板块轮动特征，市场对去中心化金融协议的关注度提升，流动性挖矿与质押类项目或迎来关注窗口。";
+    else if (diff>.5) vsAnalysis = "DeFi板块今日小幅跑赢大盘，整体表现稳健，显示市场对DeFi赛道信心温和，适合关注基本面扎实的蓝筹协议。";
+    else if (diff>-.5) vsAnalysis = "DeFi与大盘基本同步，板块内无明显独立驱动因素，市场情绪与整体加密走势高度联动，短期内难以单独做板块行情。";
+    else vsAnalysis = "DeFi赛道今日落后大盘，可能反映市场资金流向流动性更好的主力标的或热门叙事（如AI赛道），DeFi协议短期承压，可关注超跌后的回调机会。";
+  } else {
+    vsAnalysis = "数据加载中，稍后可查看对比分析。";
+  }
+
+  const html = `
+    <div class="analysis-section">
+      <div class="analysis-heading">DeFi赛道今日表现</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">板块均值</div>
+          <div class="metric-value ${pctCls2(defiAvg)}">${zhPct(defiAvg)}</div>
+          <div class="metric-note">vs 大盘 ${zhPct(majAvg)}</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">板块强弱</div>
+          <div class="metric-value" style="font-size:.78rem">${vsStr}</div>
+          <div class="metric-note">相对主力币种</div>
+        </div>
+        ${leader ? `<div class="metric-box">
+          <div class="metric-label">今日领涨</div>
+          <div class="metric-value metric-up">${leader.symbol}</div>
+          <div class="metric-note">${zhPct(leader.d?.price_change_percentage_24h)}</div>
+        </div>` : ""}
+        ${laggard ? `<div class="metric-box">
+          <div class="metric-label">今日垫底</div>
+          <div class="metric-value metric-down">${laggard.symbol}</div>
+          <div class="metric-note">${zhPct(laggard.d?.price_change_percentage_24h)}</div>
+        </div>` : ""}
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">各标的横向对比</div>
+      <div>${sorted.map(t=>{
+        const d=t.d, pct=d?.price_change_percentage_24h, p=d?rp(d.current_price,d.low_24h,d.high_24h):50;
+        return `<div class="token-mini">
+          <div class="token-mini-left">
+            <span class="token-mini-sym">${t.symbol}</span>
+            <span class="token-mini-name">${t.name} · ${rangeWord(p)}</span>
+          </div>
+          <div class="token-mini-right">
+            <span class="token-mini-price">${d?fmtUSD(d.current_price):"—"}</span>
+            <span class="token-mini-pct ${pctCls(pct)}">${pctArrow(pct)} ${pct!=null?Math.abs(pct).toFixed(2)+"%":"—"}</span>
+          </div>
+        </div>`;
+      }).join("")}</div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">赛道深度解读</div>
+      <div class="analysis-para">${vsAnalysis}</div>
+      <div class="analysis-para">
+        DeFi三大蓝筹各有侧重：<strong>UNI（Uniswap）</strong>是最大去中心化交易所，其TVL和交易量直接反映链上流动性深度；
+        <strong>AAVE</strong>是领先的去中心化借贷协议，抵押贷款利率受整体市场杠杆率影响；
+        <strong>CRV（Curve）</strong>聚焦稳定币兑换与流动性激励，对稳定币生态的健康度尤为敏感。
+        三者走势分化时，往往预示着资金在DeFi内部的再分配。
+      </div>
+      <div class="analysis-para">
+        关键数据参考：<a href="https://defillama.com" target="_blank" rel="noopener" style="color:var(--blue)">DeFiLlama TVL实时数据</a> 是判断DeFi整体资金流向的重要指标，TVL持续增长通常支撑DeFi代币估值。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">DeFi赛道相关新闻</div>
+      <div id="newsInDefi">${buildNewsHtml("defi")}</div>
+    </div>`;
+
+  return { summary, html };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function genAIAnalysis(dm) {
+  const aiGroup  = GROUPS[1];
+  const majAvg   = groupAvg(GROUPS[0], dm);
+  const aiAvg    = groupAvg(aiGroup, dm);
+  const aiNews   = allNews.filter(n=>n._tag==="ai");
+
+  const sorted = [...aiGroup.tokens]
+    .map(t=>({ ...t, d:dm[t.id] }))
+    .filter(t=>t.d)
+    .sort((a,b)=>
+      (b.d.price_change_percentage_24h??0)-(a.d.price_change_percentage_24h??0));
+
+  const leader   = sorted[0];
+  const laggard  = sorted[sorted.length-1];
+  const vsStr    = vsMarket(aiAvg, majAvg);
+  const summary  = aiAvg!=null ? `${zhPct(aiAvg)} · ${vsStr}` : "AI代理赛道分析";
+
+  let vsAnalysis;
+  if (majAvg!=null && aiAvg!=null) {
+    const diff = aiAvg - majAvg;
+    if (diff>3)  vsAnalysis = "AI代理赛道今日大幅领跑大盘，市场对AI叙事的热情持续高涨。需注意连续强势后的短线高位风险，建议关注持仓标的是否已脱离合理估值区间。";
+    else if (diff>1) vsAnalysis = "AI代理板块今日跑赢大盘，叙事驱动明显，资金持续流入。当前阶段更多是情绪与预期驱动，建议结合具体项目的技术落地进度综合判断。";
+    else if (diff>-1) vsAnalysis = "AI赛道与大盘基本同步，无明显独立行情，整体随市起伏。在AI叙事未迎来新催化剂前，短期内可能维持与大盘的高度联动。";
+    else vsAnalysis = "AI代理板块今日落后大盘，部分资金可能向流动性更好的主力标的切换，或AI赛道面临短期获利了结压力。可关注回调是否提供更好的布局机会。";
+  } else {
+    vsAnalysis = "数据加载中，稍后查看完整分析。";
+  }
+
+  const html = `
+    <div class="analysis-section">
+      <div class="analysis-heading">AI代理赛道今日表现</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">板块均值</div>
+          <div class="metric-value ${pctCls2(aiAvg)}">${zhPct(aiAvg)}</div>
+          <div class="metric-note">vs 大盘 ${zhPct(majAvg)}</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">板块强弱</div>
+          <div class="metric-value" style="font-size:.78rem">${vsStr}</div>
+          <div class="metric-note">相对主力币种</div>
+        </div>
+        ${leader ? `<div class="metric-box">
+          <div class="metric-label">今日领涨</div>
+          <div class="metric-value metric-up">${leader.symbol}</div>
+          <div class="metric-note">${zhPct(leader.d?.price_change_percentage_24h)}</div>
+        </div>` : ""}
+        ${laggard ? `<div class="metric-box">
+          <div class="metric-label">今日垫底</div>
+          <div class="metric-value metric-down">${laggard.symbol}</div>
+          <div class="metric-note">${zhPct(laggard.d?.price_change_percentage_24h)}</div>
+        </div>` : ""}
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">五大标的横向对比</div>
+      <div>${sorted.map(t=>{
+        const d=t.d, pct=d?.price_change_percentage_24h, p=d?rp(d.current_price,d.low_24h,d.high_24h):50;
+        return `<div class="token-mini">
+          <div class="token-mini-left">
+            <span class="token-mini-sym">${t.symbol}</span>
+            <span class="token-mini-name">${t.name} · ${rangeWord(p)}</span>
+          </div>
+          <div class="token-mini-right">
+            <span class="token-mini-price">${d?fmtUSD(d.current_price):"—"}</span>
+            <span class="token-mini-pct ${pctCls(pct)}">${pctArrow(pct)} ${pct!=null?Math.abs(pct).toFixed(2)+"%":"—"}</span>
+          </div>
+        </div>`;
+      }).join("")}</div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">赛道深度解读</div>
+      <div class="analysis-para">${vsAnalysis}</div>
+      <div class="analysis-para">
+        AI代理赛道的五大标的各有定位：
+        <strong>TAO（Bittensor）</strong>构建去中心化机器学习网络，矿工与验证者通过贡献模型获得奖励，具有独特的经济飞轮；
+        <strong>FET（Fetch.ai）</strong>专注于自主经济代理（AEA）落地，在供应链和智慧城市场景有实际部署；
+        <strong>NEAR</strong>是高吞吐量公链，正积极布局AI与区块链的融合基础设施；
+        <strong>RENDER</strong>利用分布式GPU算力支持AI渲染任务，需求直接受AI计算扩张驱动；
+        <strong>VIRTUAL（Virtuals Protocol）</strong>主攻链上AI代理的货币化，代理可持有资产并执行交易，是最接近"AI代理经济"愿景的项目之一。
+      </div>
+      <div class="analysis-para">
+        注意：AI代理赛道高度依赖叙事和预期，基本面验证周期较长，价格波动性普遍大于主力币种，仓位管理需更为谨慎。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">AI代理赛道相关新闻</div>
+      <div id="newsInAI">${buildNewsHtml("ai")}</div>
+    </div>`;
+
+  return { summary, html };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function genX402Analysis() {
+  const x402News = allNews.filter(n=>n._tag==="x402");
+  const newsCount = x402News.length;
+  const summary   = newsCount>0 ? `${newsCount}条相关动态` : "协议背景 · 市场动向";
+
+  const html = `
+    <div class="analysis-section">
+      <div class="analysis-heading">协议定义与背景</div>
+      <div class="analysis-para">
+        <strong>0x402</strong>（也写作 <em>x402</em>）是基于HTTP 402状态码（"Payment Required"）的链上支付协议，
+        旨在让API调用、数字内容访问、AI模型推理等互联网服务能够实现<strong>无需预先注册、即时链上小额支付</strong>。
+        其核心理念是：用区块链原生支付替代传统订阅/API密钥模式，使任何HTTP请求都可以附带一笔自动化的链上支付。
+      </div>
+      <div class="analysis-para">
+        Coinbase已于2025年发布了x402的开源参考实现，支持以太坊及EVM兼容链上的USDC等稳定币支付，
+        并与其MPC钱包基础设施整合。这意味着AI代理、自动化程序或任何软件都可以无感知地为API服务自动付费，
+        无需人工干预完成支付授权。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">为什么值得重点关注</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">关联赛道</div>
+          <div class="metric-value" style="font-size:.8rem">AI × DeFi × 支付</div>
+          <div class="metric-note">跨赛道叙事</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">核心场景</div>
+          <div class="metric-value" style="font-size:.8rem">AI代理自主支付</div>
+          <div class="metric-note">机器对机器经济</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">代币状态</div>
+          <div class="metric-value metric-flat">待上线</div>
+          <div class="metric-note">暂无CoinGecko ID</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">支持稳定币</div>
+          <div class="metric-value" style="font-size:.8rem">USDC / 链上支付</div>
+          <div class="metric-note">无需本地代币</div>
+        </div>
+      </div>
+      <div class="analysis-para">
+        x402协议处于AI代理经济的关键基础设施位置：随着AI代理自主完成任务（搜索、调用API、购买数据）的能力增强，
+        对无摩擦链上微支付的需求将大幅增长。x402协议若能成为行业标准，将直接受益于AI代理赛道的增长，
+        与TAO、FET、VIRTUAL等标的存在强协同叙事。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">当前市场地位与风险</div>
+      <div class="highlight-box amber">
+        目前 0x402/PING 尚无稳定的 CoinGecko 代币ID，无法纳入价格监控。
+        如需跟踪上市进展，请关注 Coinbase、Binance、OKX 等主流交易所的新币公告页面（见页脚链接）。
+        待上市后可在本监控页的代码注释处（搜索"TODO"）添加代币配置。
+      </div>
+      <div class="analysis-para">
+        <strong>主要关注风险：</strong>①协议采用率能否突破早期开发者圈子，实现大规模商业落地；
+        ②稳定币支付的监管合规问题（跨境支付、AML）；
+        ③与其他链上支付解决方案（如Lightning Network、Circle等）的竞争；
+        ④依赖EVM生态，生态扩张速度受制于以太坊及L2的发展节奏。
+      </div>
+    </div>
+
+    <div class="mini-divider"></div>
+
+    <div class="analysis-section">
+      <div class="analysis-heading">相关新闻与行业动态</div>
+      <div id="newsInX402">${buildNewsHtml("x402")}</div>
+      ${newsCount===0 ? `<div class="analysis-para" style="margin-top:8px">
+        当前新闻中未检测到x402直接相关报道。可直接搜索：
+        <a href="https://decrypt.co/search?q=x402" target="_blank" rel="noopener" style="color:var(--blue)">Decrypt x402</a> ·
+        <a href="https://www.coindesk.com/search?s=x402+payment" target="_blank" rel="noopener" style="color:var(--blue)">CoinDesk x402</a>
+      </div>` : ""}
+    </div>`;
+
+  return { summary, html };
+}
+
+// ─── Accordion renderer ───────────────────────────────────────────────────────
+function renderAccordions(dm) {
+  const sections = [
+    { id:"trends", icon:"📊", title:"市场趋势总览",     ...genMarketTrends(dm) },
+    { id:"macro",  icon:"🌐", title:"宏观经济与政策动态", ...genMacroAnalysis() },
+    { id:"defi",   icon:"🔄", title:"DeFi 赛道深度分析",  ...genDeFiAnalysis(dm) },
+    { id:"ai",     icon:"🤖", title:"AI 代理赛道分析",    ...genAIAnalysis(dm) },
+    { id:"x402",   icon:"⚡", title:"0x402 支付协议动态", ...genX402Analysis() },
+  ];
+
+  const container = document.getElementById("accordionContainer");
+  container.innerHTML = sections.map(s => `
+    <div class="accordion" id="acc-${s.id}">
+      <div class="accordion-header" onclick="toggleAccordion('${s.id}')">
+        <span class="accordion-icon">${s.icon}</span>
+        <span class="accordion-title">${s.title}</span>
+        <span class="accordion-summary" id="sum-${s.id}">${s.summary}</span>
+        <span class="accordion-arrow">▼</span>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-content" id="body-${s.id}">${s.html}</div>
+      </div>
+    </div>`).join("");
+}
+
+function toggleAccordion(id) {
+  const el = document.getElementById("acc-"+id);
+  el.classList.toggle("open");
+}
+
+// ─── News refresh (updates sections in-place) ─────────────────────────────────
+function refreshNewsInSections() {
+  const m  = document.getElementById("newsInMacro");
+  const d  = document.getElementById("newsInDefi");
+  const a  = document.getElementById("newsInAI");
+  const x  = document.getElementById("newsInX402");
+  if (m) m.innerHTML  = buildMacroNewsHtml();
+  if (d) d.innerHTML  = buildNewsHtml("defi");
+  if (a) a.innerHTML  = buildNewsHtml("ai");
+  if (x) x.innerHTML  = buildNewsHtml("x402");
+
+  // Refresh summaries for macro accordion
+  const macroSum = document.getElementById("sum-macro");
+  if (macroSum) {
+    const n = allNews.filter(n=>n._tag==="macro").length;
+    if (n>0) macroSum.textContent = `${n}条宏观/监管动态`;
+  }
+  const x402Sum = document.getElementById("sum-x402");
+  if (x402Sum) {
+    const n = allNews.filter(n=>n._tag==="x402").length;
+    if (n>0) x402Sum.textContent = `${n}条相关动态`;
+  }
+}
+
+// ─── Tone card ────────────────────────────────────────────────────────────────
 function computeTone(dm) {
-  const vals = GROUPS[0].tokens.map(t => dm[t.id]?.price_change_percentage_24h ?? null).filter(v=>v!==null);
-  if (!vals.length) return { avg:0, label:"Unknown", cls:"tone-neutral" };
+  const vals = GROUPS[0].tokens
+    .map(t=>dm[t.id]?.price_change_percentage_24h??null).filter(v=>v!==null);
+  if (!vals.length) return { avg:0, label:"未知", cls:"tone-neutral" };
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
   return {
     avg,
-    label: avg > 1 ? "Risk-on" : avg < -1 ? "Risk-off" : "Mixed",
-    cls:   avg > 1 ? "tone-positive" : avg < -1 ? "tone-negative" : "tone-neutral",
+    label: avg>1?"风险偏好 (Risk-on)":avg<-1?"风险规避 (Risk-off)":"混合信号 (Mixed)",
+    cls:   avg>1?"tone-positive":avg<-1?"tone-negative":"tone-neutral",
   };
 }
 
-// ─── "Today's Read" narrative ─────────────────────────────────────────────────
-function computeRead(dm, tone) {
-  const all = ALL_IDS.map(id=>dm[id]).filter(Boolean);
-  if (!all.length) return "No data available.";
-  const sorted = [...all].sort((a,b)=>(b.price_change_percentage_24h??0)-(a.price_change_percentage_24h??0));
-  const best=sorted[0], worst=sorted[sorted.length-1];
-  const bSym=best?.symbol?.toUpperCase()??"—", wSym=worst?.symbol?.toUpperCase()??"—";
-  const bPct=best?.price_change_percentage_24h??0, wPct=worst?.price_change_percentage_24h??0;
-  const nearTop    = all.filter(t=>rangePct(t.current_price,t.low_24h,t.high_24h)>80);
-  const nearBottom = all.filter(t=>rangePct(t.current_price,t.low_24h,t.high_24h)<20);
-  const avg = tone.avg>=0?`+${fmt(tone.avg)}`:`${fmt(tone.avg)}`;
-  let s1 = `The market is showing a ${tone.label.toLowerCase()} tone with the four majors averaging ${avg}% over 24 hours.`;
-  let s2 = `${bSym} leads the watchlist (${bPct>=0?"+":""}${fmt(bPct)}%), while ${wSym} is the biggest decliner (${fmt(wPct)}%).`;
-  let s3 = "";
-  if (nearTop.length) {
-    const syms = nearTop.map(t=>t.symbol.toUpperCase()).join(", ");
-    s3 = `${syms} ${nearTop.length===1?"is":"are"} trading near the top of the 24h range — watch for resistance.`;
-  } else if (nearBottom.length) {
-    const syms = nearBottom.map(t=>t.symbol.toUpperCase()).join(", ");
-    s3 = `${syms} ${nearBottom.length===1?"is":"are"} near the 24h low — possible support zone.`;
-  }
-  return [s1,s2,s3].filter(Boolean).join(" ");
-}
-
-// ─── Macro context card ───────────────────────────────────────────────────────
-function renderMacroCard() {
-  const signals = [
-    { label:"Fed Rate",     value:"5.25–5.50%", note:"Hold — next FOMC watch" },
-    { label:"BTC ETF Flow", value:"Monitor",    note:"Check Bloomberg/Farside daily" },
-    { label:"Regulation",   value:"Watch SEC",  note:"Enforcement actions + ETF news" },
-    { label:"0x402 Status", value:"TODO",       note:"No CoinGecko id yet — see footer" },
-  ];
-  document.getElementById("macroGrid").innerHTML = signals.map(s=>`
-    <div class="macro-item">
-      <div class="macro-label">${s.label}</div>
-      <div class="macro-value">${s.value}</div>
-      <div class="macro-note">${s.note}</div>
-    </div>
-  `).join("");
-  document.getElementById("macroTip").innerHTML =
-    `Key macro reads: <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" rel="noopener">BTC ETF flows</a> · ` +
-    `<a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" target="_blank" rel="noopener">FOMC calendar</a> · ` +
-    `<a href="https://defillama.com/chains" target="_blank" rel="noopener">DeFiLlama TVL</a> · ` +
-    `<a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Fear &amp; Greed Index</a>`;
-}
-
-// ─── News rendering ───────────────────────────────────────────────────────────
-function renderNews() {
-  const list   = document.getElementById("newsList");
-  const filtered = activeTab === "all"
-    ? allNews
-    : allNews.filter(n => n._tag === activeTab);
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="news-empty">No ${activeTab === "all" ? "" : activeTab + " "}news loaded yet.</div>`;
-    return;
-  }
-
-  list.innerHTML = filtered.slice(0, 20).map(item => {
-    const tag = TAG_META[item._tag] || TAG_META.general;
-    return `
-      <div class="news-item">
-        <span class="news-tag ${tag.cls}">${tag.label}</span>
-        <a class="news-headline" href="${escHtml(item.url)}" target="_blank" rel="noopener noreferrer">
-          ${escHtml(item.title)}
-        </a>
-        <div class="news-meta">${escHtml(item.source_info?.name || item.source || "")} · ${timeAgo(item.published_on)}</div>
-      </div>`;
-  }).join("");
-}
-
-function escHtml(s) {
-  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
-// ─── Fetch news ───────────────────────────────────────────────────────────────
-async function fetchNews() {
-  try {
-    const res = await fetch(NEWS_URL, { cache:"no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data.Data) throw new Error("Unexpected shape");
-    allNews = data.Data.map(item => ({ ...item, _tag: classifyArticle(item) }));
-    renderNews();
-  } catch (err) {
-    console.warn("News fetch failed:", err);
-    // Try snapshot fallback
-    try {
-      const snap = await fetch("snapshot.json",{cache:"no-store"}).then(r=>r.json());
-      if (snap?.news?.length) {
-        allNews = snap.news.map(item=>({...item, _tag: classifyArticle(item)}));
-        renderNews();
-      } else {
-        document.getElementById("newsList").innerHTML =
-          `<div class="news-empty">News unavailable — check your connection.</div>`;
-      }
-    } catch { /* ignore */ }
-  }
-}
-
-// ─── Tab switching ────────────────────────────────────────────────────────────
-document.getElementById("tabBar").addEventListener("click", e => {
-  const btn = e.target.closest(".tab-btn");
-  if (!btn) return;
-  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  activeTab = btn.dataset.tab;
-  renderNews();
-});
-
-// ─── Prices render ────────────────────────────────────────────────────────────
-function render(dm, isLive) {
+function renderTone(dm) {
   const tone = computeTone(dm);
-
   document.getElementById("toneCard").innerHTML = `
-    <div class="card-title">Market Tone — 4 Majors</div>
+    <div class="card-title">市场情绪 — 四大主力24H均值</div>
     <div class="tone-value ${tone.cls}">${tone.avg>=0?"+":""}${fmt(tone.avg)}%</div>
     <div class="tone-label ${tone.cls}">${tone.label}</div>`;
+}
 
-  document.getElementById("readCard").innerHTML = `
-    <div class="card-title">Today's Read</div>
-    <div class="read-text">${computeRead(dm, tone)}</div>`;
-
+// ─── Price groups ─────────────────────────────────────────────────────────────
+function renderPrices(dm) {
   const container = document.getElementById("tokenGroups");
   container.innerHTML = "";
   for (const group of GROUPS) {
@@ -515,124 +1064,118 @@ function render(dm, isLive) {
     lbl.className = "group-label";
     lbl.textContent = group.label;
     container.appendChild(lbl);
-
-    const sorted = [...group.tokens].sort((a,b) =>
-      (dm[b.id]?.price_change_percentage_24h ?? -Infinity) -
-      (dm[a.id]?.price_change_percentage_24h ?? -Infinity));
-
+    const sorted = [...group.tokens].sort((a,b)=>
+      (dm[b.id]?.price_change_percentage_24h??-Infinity)-
+      (dm[a.id]?.price_change_percentage_24h??-Infinity));
     for (const token of sorted) {
       const d   = dm[token.id];
-      const pct = d?.price_change_percentage_24h ?? null;
-      const cls = pct!=null ? pctCls(pct) : "flat";
-      const arr = pct!=null ? pctArrow(pct) : "–";
-      const rp  = d ? rangePct(d.current_price, d.low_24h, d.high_24h) : 50;
+      const pct = d?.price_change_percentage_24h??null;
+      const cls = pct!=null?pctCls(pct):"flat";
+      const arr = pct!=null?pctArrow(pct):"–";
+      const p   = d?rp(d.current_price,d.low_24h,d.high_24h):50;
       const card = document.createElement("div");
-      card.className = "token-card";
-      card.innerHTML = `
+      card.className="token-card";
+      card.innerHTML=`
         <div class="token-row">
           <div><div class="token-symbol">${token.symbol}</div><div class="token-name">${token.name}</div></div>
           <div>
-            <div class="token-price">${d ? fmtUSD(d.current_price) : "—"}</div>
-            <div class="token-change ${cls}">${arr} ${pct!=null ? Math.abs(pct).toFixed(2)+"%" : "—"}</div>
+            <div class="token-price">${d?fmtUSD(d.current_price):"—"}</div>
+            <div class="token-change ${cls}">${arr} ${pct!=null?Math.abs(pct).toFixed(2)+"%":"—"}</div>
           </div>
         </div>
-        ${d ? `
-        <div class="range-bar-wrap">
-          <div class="range-labels">
-            <span>${fmtUSD(d.low_24h)}</span><span>24h range</span><span>${fmtUSD(d.high_24h)}</span>
-          </div>
-          <div class="range-track"><div class="range-marker" style="left:${rp}%"></div></div>
-        </div>` : ""}`;
+        ${d?`<div class="range-bar-wrap">
+          <div class="range-labels"><span>${fmtUSD(d.low_24h)}</span><span>24小时区间</span><span>${fmtUSD(d.high_24h)}</span></div>
+          <div class="range-track"><div class="range-marker" style="left:${p}%"></div></div>
+        </div>`:""}`;
       container.appendChild(card);
     }
   }
+}
 
-  const dot  = document.getElementById("liveDot");
-  const tsEl = document.getElementById("liveTs");
-  if (isLive) {
-    dot.className = "status-dot live";
-    tsEl.textContent = "Live · updated " + new Date().toLocaleTimeString();
-  } else {
-    dot.className = "status-dot error";
-    tsEl.textContent = "Using cached data — live fetch unavailable";
+// ─── Status helpers ───────────────────────────────────────────────────────────
+function setLive()  { document.getElementById("liveDot").className="status-dot live";  document.getElementById("liveTs").textContent="实时 · 更新于 "+new Date().toLocaleTimeString("zh-CN"); }
+function setError() { document.getElementById("liveDot").className="status-dot error"; document.getElementById("liveTs").textContent="已切换至缓存数据"; }
+function showBanner(m){ const b=document.getElementById("errorBanner"); b.textContent=m; b.style.display=""; }
+function hideBanner() { document.getElementById("errorBanner").style.display="none"; }
+
+// ─── Snapshot fallback ────────────────────────────────────────────────────────
+async function loadSnapshot() {
+  try { const r=await fetch("snapshot.json",{cache:"no-store"}); return r.ok?await r.json():null; } catch { return null; }
+}
+function showSnapshotMeta(s) {
+  if (!s?.local_time) return;
+  const el=document.getElementById("snapshotLine");
+  el.textContent="快照时间："+s.local_time;
+  el.style.display="";
+}
+
+// ─── News fetch ───────────────────────────────────────────────────────────────
+async function fetchNews() {
+  try {
+    const res  = await fetch(NEWS_URL,{cache:"no-store"});
+    if (!res.ok) throw new Error("HTTP "+res.status);
+    const data = await res.json();
+    if (!data.Data) throw new Error("unexpected shape");
+    allNews = data.Data.map(item=>({...item, _tag:classify(item)}));
+    refreshNewsInSections();
+  } catch(err) {
+    console.warn("新闻加载失败:",err);
+    // Try snapshot news fallback
+    try {
+      const snap=await fetch("snapshot.json",{cache:"no-store"}).then(r=>r.json());
+      if (snap?.news?.length) {
+        allNews=snap.news.map(item=>({...item,_tag:classify(item)}));
+        refreshNewsInSections();
+      }
+    } catch {}
   }
 }
-
-// ─── Live price fetch ─────────────────────────────────────────────────────────
-async function fetchLive() {
-  const res = await fetch(GC_URL, { cache:"no-store" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const list = await res.json();
-  const map = {};
-  for (const c of list) map[c.id] = c;
-  return map;
-}
-
-async function loadSnapshot() {
-  try {
-    const res = await fetch("snapshot.json", { cache:"no-store" });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch { return null; }
-}
-
-function showSnapshotMeta(snap) {
-  if (!snap?.local_time) return;
-  const el = document.getElementById("snapshotLine");
-  el.textContent = `Snapshot: ${snap.local_time}`;
-  el.style.display = "";
-}
-
-function showBanner(msg) {
-  const b = document.getElementById("errorBanner");
-  b.textContent = msg; b.style.display = "";
-}
-function hideBanner() { document.getElementById("errorBanner").style.display = "none"; }
 
 // ─── Main refresh ─────────────────────────────────────────────────────────────
-async function refresh() {
+async function doRefresh() {
   const btn = document.getElementById("refreshBtn");
-  btn.disabled = true; btn.textContent = "↻ Refreshing…";
-  clearTimeout(retryTimer); hideBanner();
+  btn.disabled=true; btn.textContent="↻ 正在刷新…";
+  clearTimeout(retryTmr); hideBanner();
 
   try {
-    const dm = await fetchLive();
-    lastGoodData = dm;
-    render(dm, true);
-  } catch (err) {
-    console.warn("Live price fetch failed:", err);
-    if (lastGoodData) {
-      render(lastGoodData, false);
-      showBanner("Live data unavailable — showing last good data. Retrying in 60s…");
+    const res  = await fetch(GC_URL,{cache:"no-store"});
+    if (!res.ok) throw new Error("HTTP "+res.status);
+    const list = await res.json();
+    const dm = {};
+    for (const c of list) dm[c.id]=c;
+    lastDm = dm;
+    renderTone(dm);
+    renderAccordions(dm);
+    renderPrices(dm);
+    setLive();
+  } catch(err) {
+    console.warn("价格加载失败:",err);
+    if (lastDm) {
+      renderTone(lastDm); renderAccordions(lastDm); renderPrices(lastDm);
+      setError(); showBanner("实时数据暂时不可用，显示上次成功加载的数据。60秒后自动重试。");
     } else {
       const snap = await loadSnapshot();
-      if (snap?.tokens) {
-        const map = {};
-        for (const t of snap.tokens) map[t.id] = t;
-        render(map, false);
-        showBanner("CoinGecko unreachable — showing 7 AM snapshot. Retrying in 60s…");
+      if (snap?.tokens?.length) {
+        const dm={}; for (const t of snap.tokens) dm[t.id]=t;
+        renderTone(dm); renderAccordions(dm); renderPrices(dm);
+        setError(); showBanner("CoinGecko暂时无法访问，显示早间7点快照数据。60秒后自动重试。");
       } else {
-        showBanner("Price data unavailable. Check your connection and refresh.");
-        document.getElementById("liveDot").className = "status-dot error";
-        document.getElementById("liveTs").textContent = "Data unavailable";
+        setError(); showBanner("数据暂时不可用，请检查网络连接后刷新。");
       }
     }
-    retryTimer = setTimeout(refresh, 60_000);
+    retryTmr = setTimeout(doRefresh, 60_000);
   } finally {
-    btn.disabled = false; btn.textContent = "↻ Refresh";
+    btn.disabled=false; btn.textContent="↻ 刷新数据";
   }
 
-  // Always try to refresh news too
-  fetchNews();
+  fetchNews(); // always try news refresh
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-renderMacroCard();
-
 (async () => {
   const snap = await loadSnapshot();
   showSnapshotMeta(snap);
-  await refresh();
+  await doRefresh();
 })();
 </script>
 </body>
