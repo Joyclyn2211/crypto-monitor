@@ -25,7 +25,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Fetch data and write snapshot.json
+      - name: Fetch data, generate AI analysis, write snapshot.json
+        env:
+          # Add ANTHROPIC_API_KEY in: Settings → Secrets and variables → Actions → New repository secret
+          # Without it the script still runs but skips AI analysis (falls back to template analysis on the page)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Optional: override the Claude model (default: claude-opus-4-5)
+          # CLAUDE_MODEL: claude-sonnet-4-6
         run: node scripts/snapshot.mjs
 
       # ── Optional AI narrative hook ───────────────────────────────────────────

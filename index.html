@@ -197,6 +197,19 @@
       background: #fef2f2; border-color: var(--red); color: #991b1b;
     }
 
+    /* ── AI narrative block ── */
+    .ai-narrative-block {
+      background: #fafaf9; border: 1px solid #e8e5e0;
+      border-radius: 8px; padding: 14px 14px 10px; margin-bottom: 14px;
+    }
+    .ai-badge {
+      font-size: .58rem; font-weight: 600; color: #7c3aed;
+      background: #f3e8ff; padding: 1px 6px; border-radius: 4px;
+      margin-left: 5px; vertical-align: middle; letter-spacing: 0;
+      text-transform: none;
+    }
+    .ai-narrative-block .analysis-para { color: #1e293b; }
+
     /* ── Divider ── */
     .mini-divider { height: 1px; background: var(--border); margin: 12px 0; }
 
@@ -367,9 +380,11 @@ function classify(item) {
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let lastDm   = null;
-let allNews  = [];
-let retryTmr = null;
+let lastDm           = null;
+let allNews          = [];
+let retryTmr         = null;
+let snapshotAnalysis = null;   // { market_trends, macro_policy, defi_analysis, ai_agents, x402 }
+let snapshotDate     = "";     // "2026-06-05 07:00 CST"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const esc    = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -980,11 +995,32 @@ function genX402Analysis() {
   return { summary, html };
 }
 
+// ─── AI narrative helpers ─────────────────────────────────────────────────────
+// Returns the AI-generated summary if available, otherwise the template summary
+function getSummary(id, fallback) {
+  return snapshotAnalysis?.[id]?.summary || fallback;
+}
+
+// Returns an AI narrative block to prepend inside each accordion, or ""
+function getAIBlock(id) {
+  const a = snapshotAnalysis?.[id];
+  if (!a?.narrative) return "";
+  return `
+    <div class="ai-narrative-block">
+      <div class="analysis-heading">
+        今日深度解读
+        <span class="ai-badge">AI · ${snapshotDate}</span>
+      </div>
+      ${a.narrative}
+    </div>
+    <div class="mini-divider"></div>`;
+}
+
 // ─── Accordion renderer ───────────────────────────────────────────────────────
 function renderAccordions(dm) {
   const sections = [
-    { id:"trends", icon:"📊", title:"市场趋势总览",     ...genMarketTrends(dm) },
-    { id:"macro",  icon:"🌐", title:"宏观经济与政策动态", ...genMacroAnalysis() },
+    { id:"trends", icon:"📊", title:"市场趋势总览",      ...genMarketTrends(dm) },
+    { id:"macro",  icon:"🌐", title:"宏观经济与政策动态",  ...genMacroAnalysis() },
     { id:"defi",   icon:"🔄", title:"DeFi 赛道深度分析",  ...genDeFiAnalysis(dm) },
     { id:"ai",     icon:"🤖", title:"AI 代理赛道分析",    ...genAIAnalysis(dm) },
     { id:"x402",   icon:"⚡", title:"0x402 支付协议动态", ...genX402Analysis() },
@@ -996,11 +1032,14 @@ function renderAccordions(dm) {
       <div class="accordion-header" onclick="toggleAccordion('${s.id}')">
         <span class="accordion-icon">${s.icon}</span>
         <span class="accordion-title">${s.title}</span>
-        <span class="accordion-summary" id="sum-${s.id}">${s.summary}</span>
+        <span class="accordion-summary" id="sum-${s.id}">${getSummary(s.id, s.summary)}</span>
         <span class="accordion-arrow">▼</span>
       </div>
       <div class="accordion-body">
-        <div class="accordion-content" id="body-${s.id}">${s.html}</div>
+        <div class="accordion-content" id="body-${s.id}">
+          ${getAIBlock(s.id)}
+          ${s.html}
+        </div>
       </div>
     </div>`).join("");
 }
@@ -1104,9 +1143,15 @@ async function loadSnapshot() {
 }
 function showSnapshotMeta(s) {
   if (!s?.local_time) return;
-  const el=document.getElementById("snapshotLine");
-  el.textContent="快照时间："+s.local_time;
-  el.style.display="";
+  const el = document.getElementById("snapshotLine");
+  const hasAI = !!s?.analysis;
+  el.textContent = "快照：" + s.local_time + (hasAI ? " · AI分析已就绪" : "");
+  el.style.display = "";
+  // Hydrate AI analysis from snapshot
+  if (s?.analysis) {
+    snapshotAnalysis = s.analysis;
+    snapshotDate     = s.local_time;
+  }
 }
 
 // ─── News fetch ───────────────────────────────────────────────────────────────
