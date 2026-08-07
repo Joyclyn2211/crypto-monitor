@@ -1,79 +1,79 @@
 {
-  "timestamp": "2026-08-07T01:42:22.880Z",
-  "local_time": "2026-08-07 09:42 CST",
+  "timestamp": "2026-08-07T23:37:56.644Z",
+  "local_time": "2026-08-08 07:37 CST",
   "tone": "混合信号 (Mixed)",
-  "tone_avg": -0.7,
+  "tone_avg": 0.65,
   "analysis": null,
   "tokens": [
     {
       "id": "bitcoin",
       "symbol": "btc",
       "name": "Bitcoin",
-      "current_price": 64292,
-      "price_change_percentage_24h": -0.5,
-      "low_24h": 64114,
-      "high_24h": 64916
+      "current_price": 64855,
+      "price_change_percentage_24h": 0.8,
+      "low_24h": 64124,
+      "high_24h": 65312
     },
     {
       "id": "ethereum",
       "symbol": "eth",
       "name": "Ethereum",
-      "current_price": 1899.6,
-      "price_change_percentage_24h": -0.2,
-      "low_24h": 1891.72,
-      "high_24h": 1916.71
+      "current_price": 1913.91,
+      "price_change_percentage_24h": 0.5,
+      "low_24h": 1893.25,
+      "high_24h": 1934.63
     },
     {
       "id": "binancecoin",
       "symbol": "bnb",
       "name": "BNB",
-      "current_price": 592.71,
-      "price_change_percentage_24h": -0.2,
-      "low_24h": 589.59,
-      "high_24h": 597.51
+      "current_price": 592.19,
+      "price_change_percentage_24h": 0.1,
+      "low_24h": 585,
+      "high_24h": 594.02
     },
     {
       "id": "solana",
       "symbol": "sol",
       "name": "Solana",
-      "current_price": 72.59,
-      "price_change_percentage_24h": -1.9,
-      "low_24h": 72.3,
-      "high_24h": 74.24
+      "current_price": 73.6,
+      "price_change_percentage_24h": 1.2,
+      "low_24h": 72.4,
+      "high_24h": 74.26
     },
     {
       "id": "bittensor",
       "symbol": "tao",
       "name": "Bittensor",
-      "current_price": 191.89,
-      "price_change_percentage_24h": -2.5,
-      "low_24h": 190.87,
-      "high_24h": 197.32
+      "current_price": 193.39,
+      "price_change_percentage_24h": 0.5,
+      "low_24h": 190.18,
+      "high_24h": 195.14
     },
     {
       "id": "fetch-ai",
       "symbol": "fet",
       "name": "Artificial Superintelligence Alliance",
-      "current_price": 0.135887,
-      "price_change_percentage_24h": -4.2,
-      "low_24h": 0.134451,
-      "high_24h": 0.142382
+      "current_price": 0.136712,
+      "price_change_percentage_24h": -1.2,
+      "low_24h": 0.131633,
+      "high_24h": 0.136622
     },
     {
       "id": "near",
       "symbol": "near",
       "name": "NEAR Protocol",
-      "current_price": 1.66,
-      "price_change_percentage_24h": -2.1,
-      "low_24h": 1.65,
-      "high_24h": 1.73
+      "current_price": 1.59,
+      "price_change_percentage_24h": -4.2,
+      "low_24h": 1.58,
+      "high_24h": 1.67
     },
     {
       "id": "render-token",
       "symbol": "render",
       "name": "Render",
-      "current_price": 1.35,
-      "price_change_percentage_24h": 1.6,
+      "current_price": 1.31,
+      "price_change_percentage_24h": -3,
       "low_24h": 1.31,
       "high_24h": 1.35
     },
@@ -81,37 +81,37 @@
       "id": "virtual-protocol",
       "symbol": "virtual",
       "name": "Virtuals Protocol",
-      "current_price": 0.566439,
-      "price_change_percentage_24h": -0.4,
-      "low_24h": 0.562066,
-      "high_24h": 0.580243
+      "current_price": 0.560138,
+      "price_change_percentage_24h": -2.4,
+      "low_24h": 0.554238,
+      "high_24h": 0.569395
     },
     {
       "id": "uniswap",
       "symbol": "uni",
       "name": "Uniswap",
-      "current_price": 4.05,
-      "price_change_percentage_24h": 0.7,
-      "low_24h": 3.97,
-      "high_24h": 4.14
+      "current_price": 3.97,
+      "price_change_percentage_24h": -1.3,
+      "low_24h": 3.94,
+      "high_24h": 4.09
     },
     {
       "id": "aave",
       "symbol": "aave",
       "name": "Aave",
-      "current_price": 90.46,
-      "price_change_percentage_24h": 0.3,
-      "low_24h": 87.48,
-      "high_24h": 90.3
+      "current_price": 89.9,
+      "price_change_percentage_24h": 0.5,
+      "low_24h": 89.03,
+      "high_24h": 91.08
     },
     {
       "id": "curve-dao-token",
       "symbol": "crv",
       "name": "Curve DAO",
-      "current_price": 0.215509,
-      "price_change_percentage_24h": 5.2,
-      "low_24h": 0.204099,
-      "high_24h": 0.221017
+      "current_price": 0.212098,
+      "price_change_percentage_24h": -0.8,
+      "low_24h": 0.210283,
+      "high_24h": 0.218508
     }
   ],
   "news": []
